@@ -20,6 +20,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         rehypePlugins={[rehypeKatex]}
         components={{
           // Custom rendering for code blocks
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           code: ({ className, children, ...props }: any) => {
             const match = /language-(\w+)/.exec(className || '');
             const isInline = !match;

@@ -19,7 +19,11 @@ import {
 import { submissionApi, ApiError, SubmissionDetail, SelfTestResult } from '@/lib/api';
 import { ContestProblemPageProps } from '@/lib/page-types';
 import { getLanguageTemplate } from '@/components/shared/code-editor';
-import { SubmissionStatus, SubmissionStatusLabels, getSubmissionStatus } from '@/lib/submission-status';
+import {
+  SubmissionStatus,
+  SubmissionStatusLabels,
+  getSubmissionStatus,
+} from '@/lib/submission-status';
 import { Submission } from '@/lib/api';
 import Link from 'next/link';
 import { useToast } from '@/hooks';
@@ -33,15 +37,11 @@ import {
 } from '@/components/contest/problem';
 import { useRouter } from 'next/navigation';
 
-
-
-
 export default function ContestProblemDetailPage({ params }: ContestProblemPageProps) {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('C++');
   const [mounted, setMounted] = useState(false);
   const [lastSubmissionId, setLastSubmissionId] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [submissionDetail, setSubmissionDetail] = useState<SubmissionDetail | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
@@ -75,11 +75,7 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
   } = useProblem(problemId, contestId);
 
   // 获取竞赛题目列表用于导航
-  const {
-    data: contestProblems,
-    error: contestProblemsError,
-    isLoading: contestProblemsLoading,
-  } = useContestProblems(contestId);
+  const { data: contestProblems } = useContestProblems(contestId);
 
   const { data: submissions, mutate: mutateSubmissions } = useContestSubmissions(
     contestId,
@@ -99,11 +95,6 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
     startPolling: startSubmissionPolling,
   } = useSubmissionWithPolling(lastSubmissionId || undefined, contestId, {
     onComplete: submission => {
-      setSubmitSuccess(true);
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 3000);
-
       // 刷新提交历史
       mutateSubmissions();
 
@@ -126,47 +117,44 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
   });
 
   // 使用自测轮询 hook
-  const {
-    result: selfTestResultData,
-    isPolling: isSelfTestPolling,
-    startPolling: startSelfTestPolling,
-  } = useSelfTestWithPolling(selfTestUuid || undefined, contestId, {
-    onComplete: result => {
-      setIsSelfTesting(false);
+  const { isPolling: isSelfTestPolling, startPolling: startSelfTestPolling } =
+    useSelfTestWithPolling(selfTestUuid || undefined, contestId, {
+      onComplete: result => {
+        setIsSelfTesting(false);
 
-      if (!result.isCompiled) {
-        // 编译失败
-        setSelfTestResult({
-          success: false,
-          output: result.complieMsg || '编译失败',
-          executionTime: `${Math.round(result.time / 1000000)}ms`,
-          memory: `${Math.round(result.memory / 1024)}KB`,
-          verdict: 'Compile Error',
-          stderr: result.stderr,
-        });
-      } else if (result.stderr && result.stderr.trim()) {
-        // 运行时错误
-        setSelfTestResult({
-          success: false,
-          output: result.stderr,
-          executionTime: `${Math.round(result.time / 1000000)}ms`,
-          memory: `${Math.round(result.memory / 1024)}KB`,
-          verdict: 'Runtime Error',
-          stderr: result.stderr,
-        });
-      } else {
-        // 执行成功
-        setSelfTestResult({
-          success: true,
-          output: result.stdout || '执行成功',
-          executionTime: `${Math.round(result.time / 1000000)}ms`,
-          memory: `${Math.round(result.memory / 1024)}KB`,
-          verdict: 'Accepted',
-          stderr: result.stderr,
-        });
-      }
-    },
-  });
+        if (!result.isCompiled) {
+          // 编译失败
+          setSelfTestResult({
+            success: false,
+            output: result.complieMsg || '编译失败',
+            executionTime: `${Math.round(result.time / 1000000)}ms`,
+            memory: `${Math.round(result.memory / 1024)}KB`,
+            verdict: 'Compile Error',
+            stderr: result.stderr,
+          });
+        } else if (result.stderr && result.stderr.trim()) {
+          // 运行时错误
+          setSelfTestResult({
+            success: false,
+            output: result.stderr,
+            executionTime: `${Math.round(result.time / 1000000)}ms`,
+            memory: `${Math.round(result.memory / 1024)}KB`,
+            verdict: 'Runtime Error',
+            stderr: result.stderr,
+          });
+        } else {
+          // 执行成功
+          setSelfTestResult({
+            success: true,
+            output: result.stdout || '执行成功',
+            executionTime: `${Math.round(result.time / 1000000)}ms`,
+            memory: `${Math.round(result.memory / 1024)}KB`,
+            verdict: 'Accepted',
+            stderr: result.stderr,
+          });
+        }
+      },
+    });
 
   // 使用用户代码存储
   const { getCode, saveCode, getLastLanguage, saveLastLanguage } = useUserCodeStore();
@@ -218,7 +206,6 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
         setSelfTestUuid(uuid);
       }
     } catch (error) {
-      console.error('Self test failed:', error);
       if (error instanceof ApiError && error.message.includes('rate Limit Exceeded')) {
         setSelfTestResult({
           success: false,
@@ -261,8 +248,7 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
         testCases: casesResponse.cases || [],
       });
       setIsLoadingDetail(false);
-    } catch (error) {
-      console.error('Failed to load submission detail:', error);
+    } catch {
       setIsLoadingDetail(false);
     }
   };
@@ -342,11 +328,11 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
     const handleKeyDown = (event: KeyboardEvent) => {
       // 只有在没有焦点在输入框时才处理键盘事件
       const activeElement = document.activeElement;
-      const isInputFocused = activeElement && (
-        activeElement.tagName === 'INPUT' ||
-        activeElement.tagName === 'TEXTAREA' ||
-        activeElement.getAttribute('contenteditable') === 'true'
-      );
+      const isInputFocused =
+        activeElement &&
+        (activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.getAttribute('contenteditable') === 'true');
 
       if (isInputFocused) return;
 
@@ -384,7 +370,10 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
       currentIndex,
       total: sortedProblems.length,
       prevProblem: currentIndex > 0 ? sortedProblems[currentIndex - 1] : null,
-      nextProblem: currentIndex >= 0 && currentIndex < sortedProblems.length - 1 ? sortedProblems[currentIndex + 1] : null,
+      nextProblem:
+        currentIndex >= 0 && currentIndex < sortedProblems.length - 1
+          ? sortedProblems[currentIndex + 1]
+          : null,
       currentProblemLabel: currentIndex >= 0 ? String.fromCharCode(65 + currentIndex) : '',
       displayIndex: currentIndex >= 0 ? currentIndex + 1 : 0,
     };
@@ -432,7 +421,6 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
         setLastSubmissionId(result.uuid);
       }
     } catch (error) {
-      console.error('Submission failed:', error);
       if (error instanceof ApiError && error.message.includes('rate Limit Exceeded')) {
         toast({
           variant: 'destructive',
@@ -489,12 +477,14 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
           </Link>
           <div className="h-4 w-px bg-border" />
 
-                              {/* 题目导航按钮 */}
+          {/* 题目导航按钮 */}
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigationInfo.prevProblem && navigateToProblem(navigationInfo.prevProblem.id)}
+              onClick={() =>
+                navigationInfo.prevProblem && navigateToProblem(navigationInfo.prevProblem.id)
+              }
               disabled={!navigationInfo.prevProblem || !contestProblems}
               className="h-8 w-8 p-0"
             >
@@ -503,7 +493,9 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigationInfo.nextProblem && navigateToProblem(navigationInfo.nextProblem.id)}
+              onClick={() =>
+                navigationInfo.nextProblem && navigateToProblem(navigationInfo.nextProblem.id)
+              }
               disabled={!navigationInfo.nextProblem || !contestProblems}
               className="h-8 w-8 p-0"
             >
@@ -572,10 +564,7 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
                 </TabsList>
 
                 <TabsContent value="description">
-                  <ProblemDescription
-                    content={contentData}
-                    rawContent={problem.content}
-                  />
+                  <ProblemDescription content={contentData} rawContent={problem.content} />
                 </TabsContent>
 
                 <TabsContent value="submissions">

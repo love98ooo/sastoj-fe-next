@@ -18,7 +18,6 @@ const eslintConfig = [
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
-      '@typescript-eslint/prefer-const': 'warn',
       'react/no-unescaped-entities': 'warn',
       'react/display-name': 'warn',
       'react/jsx-key': 'warn',
@@ -29,8 +28,22 @@ const eslintConfig = [
       // 覆盖其他可能的错误规则为警告
       'no-console': 'warn',
       'no-debugger': 'warn',
-      'no-unused-vars': 'warn',
       'prefer-const': 'warn',
+    },
+  },
+  // 为 TypeScript 文件禁用 no-unused-vars
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
 ];

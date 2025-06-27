@@ -23,9 +23,13 @@ export default function ContestPage() {
     setMounted(true);
   }, []);
 
-  const getContestStatus = (contest: any) => {
+  const getContestStatus = (contest: { startTime: string; endTime: string }) => {
     if (!mounted) {
-      return { status: 'loading', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700' };
+      return {
+        status: 'loading',
+        color:
+          'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700',
+      };
     }
 
     const now = new Date();
@@ -33,11 +37,23 @@ export default function ContestPage() {
     const endTime = new Date(contest.endTime);
 
     if (now < startTime) {
-      return { status: 'upcoming', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-800' };
+      return {
+        status: 'upcoming',
+        color:
+          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-800',
+      };
     } else if (now > endTime) {
-      return { status: 'ended', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700' };
+      return {
+        status: 'ended',
+        color:
+          'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700',
+      };
     } else {
-      return { status: 'running', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-800' };
+      return {
+        status: 'running',
+        color:
+          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-800',
+      };
     }
   };
 
@@ -54,7 +70,7 @@ export default function ContestPage() {
         hour: '2-digit',
         minute: '2-digit',
       });
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };
@@ -70,8 +86,8 @@ export default function ContestPage() {
       }
 
       router.push(`/contest/${contestId}/problems`);
-    } catch (error) {
-      console.error('Failed to join contest:', error);
+    } catch {
+      // Handle error silently or show user-friendly message
     }
   };
 
@@ -94,9 +110,7 @@ export default function ContestPage() {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-3">比赛列表</h1>
-        <p className="text-gray-600 text-lg">
-          选择一个比赛并开始答题
-        </p>
+        <p className="text-gray-600 text-lg">选择一个比赛并开始答题</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -8,11 +8,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Code2 } from 'lucide-react';
-import { SUPPORTED_LANGUAGES, type Language } from './code-editor';
+import { SUPPORTED_LANGUAGES } from './code-editor';
 
 interface LanguageSelectorProps {
   value: string;
-  onValueChange: (value: string) => void;
+  onValueChange: (newValue: string) => void;
   className?: string;
   noFocusRing?: boolean;
 }

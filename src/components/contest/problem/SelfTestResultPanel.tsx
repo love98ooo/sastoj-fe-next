@@ -13,10 +13,10 @@ interface SelfTestResultPanelProps {
   customTestInput: string;
 }
 
-export function SelfTestResultPanel({ 
-  result, 
-  isLoading, 
-  customTestInput 
+export function SelfTestResultPanel({
+  result,
+  isLoading,
+  customTestInput,
 }: SelfTestResultPanelProps) {
   return (
     <div className="flex-1 overflow-y-auto px-4 py-3">
@@ -37,9 +37,7 @@ export function SelfTestResultPanel({
           >
             <div className="flex items-center gap-2">
               <div
-                className={`w-3 h-3 rounded-full ${
-                  result.success ? 'bg-green-500' : 'bg-red-500'
-                }`}
+                className={`w-3 h-3 rounded-full ${result.success ? 'bg-green-500' : 'bg-red-500'}`}
               />
               <span className="text-sm font-medium">
                 {result.success ? '运行成功' : '运行失败'}
@@ -50,9 +48,7 @@ export function SelfTestResultPanel({
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">时间:</span>
-                <span className="font-mono font-medium">
-                  {result.executionTime}
-                </span>
+                <span className="font-mono font-medium">{result.executionTime}</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">内存:</span>
@@ -65,9 +61,7 @@ export function SelfTestResultPanel({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* 左侧 - 输入 */}
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                输入
-              </label>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">输入</label>
               <pre className="text-xs bg-muted p-3 rounded border font-mono whitespace-pre-wrap h-[calc(100%-24px)]">
                 {customTestInput}
               </pre>
@@ -76,9 +70,7 @@ export function SelfTestResultPanel({
             {/* 右侧 - 输出和错误信息 */}
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                  输出
-                </label>
+                <label className="text-xs font-medium text-muted-foreground mb-2 block">输出</label>
                 <pre className="text-xs bg-muted p-3 rounded border font-mono whitespace-pre-wrap">
                   {result.output}
                 </pre>
@@ -101,10 +93,10 @@ export function SelfTestResultPanel({
         <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
           <p>暂无自测结果</p>
           <p className="mt-2 text-xs">
-            在测试用例标签页输入代码和测试数据，然后点击"自测"按钮
+            在测试用例标签页输入代码和测试数据，然后点击&ldquo;自测&rdquo;按钮
           </p>
         </div>
       )}
     </div>
   );
-} 
+}

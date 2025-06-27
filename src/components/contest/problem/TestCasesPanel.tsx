@@ -26,14 +26,10 @@ export function TestCasesPanel({
   setCustomTestInput,
   selfTestResult,
   isSelfTesting,
-  isSelfTestPolling
+  isSelfTestPolling,
 }: TestCasesPanelProps) {
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={setActiveTab}
-      className="w-full h-full flex flex-col"
-    >
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
       <div className="px-4 pt-3 pb-2 border-b flex-shrink-0">
         <TabsList className="grid w-full grid-cols-2 bg-muted">
           <TabsTrigger value="test-cases" className="text-sm">
@@ -46,11 +42,7 @@ export function TestCasesPanel({
       </div>
 
       <TabsContent value="test-cases" className="flex-1 overflow-y-auto mt-0">
-        <CodeEditor
-          language="cpp"
-          value={customTestInput}
-          onChange={setCustomTestInput}
-        />
+        <CodeEditor language="cpp" value={customTestInput} onChange={setCustomTestInput} />
       </TabsContent>
 
       <TabsContent value="self-test-result" className="flex-1 overflow-y-auto">
@@ -62,4 +54,4 @@ export function TestCasesPanel({
       </TabsContent>
     </Tabs>
   );
-} 
+}

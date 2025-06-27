@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useLogin } from '@/hooks';
 import { useToast } from '@/hooks';
 import { ThemeToggle, Logo } from '@/components/shared';
+import { tokenManager } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function LoginPage() {
 
       if (result.token) {
         // Store token in localStorage
-        localStorage.setItem('token', result.token);
+        tokenManager.setToken(result.token);
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
           localStorage.setItem('username', username.trim());
@@ -45,14 +45,15 @@ export default function LoginPage() {
         // Show success message
         setError('');
 
-        // Redirect to problems page
-        router.push('/contest');
+        // Get appropriate route based on user role from token
+        const userRoute = tokenManager.getUserRoute();
+        router.push(userRoute);
       } else {
         setError('登录失败：未收到令牌');
       }
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || '登录失败，请检查您的凭据');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '登录失败，请检查您的凭据';
+      setError(errorMessage);
     }
   };
 

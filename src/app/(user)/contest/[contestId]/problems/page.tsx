@@ -60,9 +60,7 @@ export default function ContestProblemsPage() {
                   <Badge variant="secondary" className="text-xs">
                     {problem.type}
                   </Badge>
-                  <Badge className="bg-blue-100 text-blue-800 text-xs">
-                    {problem.score} 分
-                  </Badge>
+                  <Badge className="bg-blue-100 text-blue-800 text-xs">{problem.score} 分</Badge>
                 </div>
               </div>
             </CardHeader>

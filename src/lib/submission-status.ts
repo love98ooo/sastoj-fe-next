@@ -59,13 +59,15 @@ export const SubmissionStatusColors: Record<
   [SubmissionStatus.Invalid]: {
     bg: 'bg-gray-100 dark:bg-gray-800/80',
     text: 'text-gray-700 dark:text-gray-300',
-    hover: 'hover:bg-gray-200 dark:hover:bg-gray-700/90 hover:text-gray-800 dark:hover:text-gray-200',
+    hover:
+      'hover:bg-gray-200 dark:hover:bg-gray-700/90 hover:text-gray-800 dark:hover:text-gray-200',
     variant: 'secondary',
   },
   [SubmissionStatus.Accepted]: {
     bg: 'bg-green-100 dark:bg-green-900/80',
     text: 'text-green-700 dark:text-green-300',
-    hover: 'hover:bg-green-200 dark:hover:bg-green-800/90 hover:text-green-800 dark:hover:text-green-200',
+    hover:
+      'hover:bg-green-200 dark:hover:bg-green-800/90 hover:text-green-800 dark:hover:text-green-200',
     variant: 'default',
   },
   [SubmissionStatus.CompileError]: {
@@ -83,7 +85,8 @@ export const SubmissionStatusColors: Record<
   [SubmissionStatus.PresentationError]: {
     bg: 'bg-yellow-100 dark:bg-yellow-900/80',
     text: 'text-yellow-700 dark:text-yellow-300',
-    hover: 'hover:bg-yellow-200 dark:hover:bg-yellow-800/90 hover:text-yellow-800 dark:hover:text-yellow-200',
+    hover:
+      'hover:bg-yellow-200 dark:hover:bg-yellow-800/90 hover:text-yellow-800 dark:hover:text-yellow-200',
     variant: 'outline',
   },
   [SubmissionStatus.RuntimeError]: {
@@ -95,37 +98,43 @@ export const SubmissionStatusColors: Record<
   [SubmissionStatus.TimeLimitExceeded]: {
     bg: 'bg-orange-100 dark:bg-orange-900/80',
     text: 'text-orange-700 dark:text-orange-300',
-    hover: 'hover:bg-orange-200 dark:hover:bg-orange-800/90 hover:text-orange-800 dark:hover:text-orange-200',
+    hover:
+      'hover:bg-orange-200 dark:hover:bg-orange-800/90 hover:text-orange-800 dark:hover:text-orange-200',
     variant: 'outline',
   },
   [SubmissionStatus.MemoryLimitExceeded]: {
     bg: 'bg-orange-100 dark:bg-orange-900/80',
     text: 'text-orange-700 dark:text-orange-300',
-    hover: 'hover:bg-orange-200 dark:hover:bg-orange-800/90 hover:text-orange-800 dark:hover:text-orange-200',
+    hover:
+      'hover:bg-orange-200 dark:hover:bg-orange-800/90 hover:text-orange-800 dark:hover:text-orange-200',
     variant: 'outline',
   },
   [SubmissionStatus.OutputLimitExceeded]: {
     bg: 'bg-purple-100 dark:bg-purple-900/80',
     text: 'text-purple-700 dark:text-purple-300',
-    hover: 'hover:bg-purple-200 dark:hover:bg-purple-800/90 hover:text-purple-800 dark:hover:text-purple-200',
+    hover:
+      'hover:bg-purple-200 dark:hover:bg-purple-800/90 hover:text-purple-800 dark:hover:text-purple-200',
     variant: 'outline',
   },
   [SubmissionStatus.Waiting]: {
     bg: 'bg-blue-100 dark:bg-blue-900/80',
     text: 'text-blue-700 dark:text-blue-300',
-    hover: 'hover:bg-blue-200 dark:hover:bg-blue-800/90 hover:text-blue-800 dark:hover:text-blue-200',
+    hover:
+      'hover:bg-blue-200 dark:hover:bg-blue-800/90 hover:text-blue-800 dark:hover:text-blue-200',
     variant: 'secondary',
   },
   [SubmissionStatus.Judging]: {
     bg: 'bg-blue-100 dark:bg-blue-900/80',
     text: 'text-blue-700 dark:text-blue-300',
-    hover: 'hover:bg-blue-200 dark:hover:bg-blue-800/90 hover:text-blue-800 dark:hover:text-blue-200',
+    hover:
+      'hover:bg-blue-200 dark:hover:bg-blue-800/90 hover:text-blue-800 dark:hover:text-blue-200',
     variant: 'secondary',
   },
   [SubmissionStatus.SystemError]: {
     bg: 'bg-gray-100 dark:bg-gray-800/80',
     text: 'text-gray-700 dark:text-gray-300',
-    hover: 'hover:bg-gray-200 dark:hover:bg-gray-700/90 hover:text-gray-800 dark:hover:text-gray-200',
+    hover:
+      'hover:bg-gray-200 dark:hover:bg-gray-700/90 hover:text-gray-800 dark:hover:text-gray-200',
     variant: 'secondary',
   },
   [SubmissionStatus.Unaccepted]: {

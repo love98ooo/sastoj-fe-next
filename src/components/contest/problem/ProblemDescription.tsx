@@ -27,14 +27,13 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      
+
       toast({
         variant: 'success',
         title: '复制成功',
         description: '内容已复制到剪贴板',
       });
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
+    } catch {
       toast({
         variant: 'destructive',
         title: '复制失败',
@@ -47,9 +46,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
     <div className="h-[calc(100vh-140px)] overflow-y-auto space-y-6 pr-2">
       {/* Problem Description */}
       <div className="prose prose-sm max-w-none">
-        <MarkdownRenderer
-          content={content.description || rawContent || '暂无题目描述。'}
-        />
+        <MarkdownRenderer content={content.description || rawContent || '暂无题目描述。'} />
       </div>
 
       {/* Input Format */}
@@ -77,15 +74,11 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
         <div className="space-y-4">
           {content.examples.map((example, index) => (
             <div key={index}>
-              <h4 className="font-semibold mb-2 text-foreground text-base">
-                样例 {index + 1}
-              </h4>
+              <h4 className="font-semibold mb-2 text-foreground text-base">样例 {index + 1}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-muted p-4 rounded-lg border">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      输入
-                    </span>
+                    <span className="text-sm font-medium text-muted-foreground">输入</span>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -95,15 +88,11 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                  <pre className="text-sm text-foreground whitespace-pre-wrap">
-                    {example.input}
-                  </pre>
+                  <pre className="text-sm text-foreground whitespace-pre-wrap">{example.input}</pre>
                 </div>
                 <div className="bg-muted p-4 rounded-lg border">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      输出
-                    </span>
+                    <span className="text-sm font-medium text-muted-foreground">输出</span>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -126,9 +115,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
       {/* Constraints */}
       {content.constraints && content.constraints.length > 0 && (
         <div>
-          <h4 className="font-semibold mb-3 text-foreground text-base">
-            数据范围与提示
-          </h4>
+          <h4 className="font-semibold mb-3 text-foreground text-base">数据范围与提示</h4>
           <div className="bg-muted p-4 rounded-lg border text-sm">
             <ul className="list-disc pl-5 space-y-1">
               {content.constraints.map((constraint, index) => (
@@ -142,4 +129,4 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
       )}
     </div>
   );
-} 
+}

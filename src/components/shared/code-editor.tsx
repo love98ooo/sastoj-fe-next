@@ -349,7 +349,7 @@ export function CodeEditor({
         height={height}
         language={getMonacoLanguage(language)}
         value={value}
-        onChange={value => onChange(value || '')}
+        onChange={newValue => onChange(newValue || '')}
         theme={getEditorTheme()}
         options={{
           readOnly,

@@ -16,11 +16,11 @@ export class ApiError extends Error {
 }
 
 // Generic API response wrapper
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   code: number;
   message: string;
   data?: T;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PaginatedResponse<T> {
@@ -28,6 +28,63 @@ export interface PaginatedResponse<T> {
   total: number;
   current: number;
   size: number;
+}
+
+// Response interfaces for API endpoints
+export interface ContestsResponse {
+  contests: Contest[];
+}
+
+export interface UserContestsResponse {
+  contests: Contest[];
+}
+
+export interface ContestProblemsResponse {
+  problems: ContestProblem[];
+}
+
+export interface ContestSubmissionsResponse {
+  submissions: Submission[];
+}
+
+export interface ProblemsResponse {
+  problems: Problem[];
+}
+
+export interface JoinContestResponse {
+  isJoin: boolean;
+}
+
+export interface TestResponse {
+  uuid: string;
+}
+
+export interface SubmissionResponse {
+  uuid: string;
+}
+
+export interface SelfTestResponse {
+  uuid: string;
+}
+
+export interface RankingUser {
+  problems: RankingProblem[];
+  username: string;
+  totalScore: number;
+  rank: number;
+  penalty: number;
+}
+
+export interface RankingProblem {
+  problemId: string;
+  state: number;
+  point: number;
+  triedTimes: number;
+  scoreAchievedTime: string;
+}
+
+export interface ContestRankingResponse {
+  users: RankingUser[];
 }
 
 // Enhanced fetch with error handling and auth
@@ -50,7 +107,7 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 
     // Handle different response types
     const contentType = response.headers.get('content-type');
-    let data: any;
+    let data: unknown;
 
     if (contentType?.includes('application/json')) {
       data = await response.json();
@@ -69,13 +126,13 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
       }
 
       throw new ApiError(
-        data?.message || `HTTP Error: ${response.status}`,
+        (data as { message?: string })?.message || `HTTP Error: ${response.status}`,
         response.status,
-        data?.code
+        (data as { code?: string })?.code
       );
     }
 
-    return data;
+    return data as T;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -89,14 +146,14 @@ export const api = {
   get: <T>(endpoint: string, options?: RequestInit): Promise<T> =>
     apiFetch<T>(endpoint, { ...options, method: 'GET' }),
 
-  post: <T>(endpoint: string, data?: any, options?: RequestInit): Promise<T> =>
+  post: <T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> =>
     apiFetch<T>(endpoint, {
       ...options,
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  put: <T>(endpoint: string, data?: any, options?: RequestInit): Promise<T> =>
+  put: <T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> =>
     apiFetch<T>(endpoint, {
       ...options,
       method: 'PUT',
@@ -124,7 +181,7 @@ export interface Problem {
   content: string;
   score: number;
   index: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
   // Additional fields that might be in the content
   difficulty?: string;
   time_limit?: number;
@@ -160,7 +217,7 @@ export interface ContestProblem {
   title: string;
   score: number;
   index: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
 }
 
 export interface Submission {
@@ -174,10 +231,6 @@ export interface Submission {
   updatedAt?: string | null;
   totalTime?: number;
   maxMemory?: number;
-}
-
-export interface SubmissionResponse {
-  uuid: string;
 }
 
 export interface User {
@@ -208,9 +261,9 @@ export const authApi = {
 
   logout: (): Promise<void> => api.post('/logout'),
 
-  larkLogin: (): Promise<any> => api.post('/login/lark'),
+  larkLogin: (): Promise<unknown> => api.post('/login/lark'),
 
-  linkLogin: (): Promise<any> => api.post('/login/link'),
+  linkLogin: (): Promise<unknown> => api.post('/login/link'),
 };
 
 export const problemApi = {
@@ -277,7 +330,10 @@ export const contestApi = {
 
   getProblems: (id: number): Promise<Problem[]> => api.get(`/contest/${id}/problems`),
 
-  getRanking: (id: number, params?: { size?: number; current?: number }): Promise<any> => {
+  getRanking: (
+    id: number,
+    params?: { size?: number; current?: number }
+  ): Promise<ContestRankingResponse> => {
     const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -303,7 +359,7 @@ export const submissionApi = {
     language: string;
     code: string;
     input: string;
-  }): Promise<any> => api.post('/selftest', data),
+  }): Promise<SelfTestResponse> => api.post('/selftest', data),
 
   getById: (id: number): Promise<Submission> => api.get(`/submission/${id}`),
 
@@ -424,43 +480,45 @@ export const contestService = {
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = (await apiFetch(`/contest?${searchParams.toString()}`)) as any;
-    return response.contests as Contest[];
+    const response = await apiFetch<ContestsResponse>(`/contest?${searchParams.toString()}`);
+    return response.contests;
   },
 
   // Get user's contests
   getUserContests: async () => {
-    const response = (await apiFetch(`/user/contests`)) as any;
-    return response.contests as Contest[];
+    const response = await apiFetch<UserContestsResponse>(`/user/contests`);
+    return response.contests;
   },
 
   // Get contest by ID (use user endpoint instead of admin endpoint)
   getContest: async (contestId: number) => {
-    const response = (await apiFetch(`/user/contests/${contestId}/detail`)) as any;
-    return response as Contest;
+    const response = await apiFetch<Contest>(`/user/contests/${contestId}/detail`);
+    return response;
   },
 
   // Join or exit contest
   joinContest: async (contestId: number, isJoin: boolean) => {
-    const response = (await apiFetch(`/user/contests/${contestId}`, {
+    const response = await apiFetch<JoinContestResponse>(`/user/contests/${contestId}`, {
       method: 'POST',
       body: JSON.stringify({ is_join: isJoin }),
-    })) as any;
-    return response.isJoin as boolean;
+    });
+    return response.isJoin;
   },
 
   // Get problems in a contest
   getContestProblems: async (contestId: number) => {
     // Only use user endpoint - users must join contest to access problems
-    const response = (await apiFetch(`/user/contests/${contestId}/problems`)) as any;
-    return response.problems as ContestProblem[];
+    const response = await apiFetch<ContestProblemsResponse>(
+      `/user/contests/${contestId}/problems`
+    );
+    return response.problems;
   },
 
   // Get specific problem in a contest (only for joined contests)
   getContestProblem: async (contestId: number, problemId: number) => {
     // Only use user endpoint - users must join contest to access problems
-    const response = (await apiFetch(`/user/contests/${contestId}/problems/${problemId}`)) as any;
-    return response as Problem;
+    const response = await apiFetch<Problem>(`/user/contests/${contestId}/problems/${problemId}`);
+    return response;
   },
 
   // Submit solution to contest problem
@@ -472,13 +530,13 @@ export const contestService = {
       language: string;
     }
   ): Promise<SubmissionResponse> => {
-    const response = (await apiFetch(
+    const response = await apiFetch<SubmissionResponse>(
       `/user/contests/${contestId}/problems/${problemId}/submission`,
       {
         method: 'POST',
         body: JSON.stringify(data),
       }
-    )) as SubmissionResponse;
+    );
     return response;
   },
 
@@ -492,11 +550,14 @@ export const contestService = {
       input: string;
     }
   ) => {
-    const response = (await apiFetch(`/user/contests/${contestId}/problems/${problemId}/test`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })) as any;
-    return response.uuid as string;
+    const response = await apiFetch<TestResponse>(
+      `/user/contests/${contestId}/problems/${problemId}/test`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+    return response.uuid;
   },
 
   // Get contest submissions
@@ -509,10 +570,10 @@ export const contestService = {
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = (await apiFetch(
+    const response = await apiFetch<ContestSubmissionsResponse>(
       `/user/contests/${contestId}/problems/${problemId}/submissions?${searchParams.toString()}`
-    )) as any;
-    return response.submissions as Submission[];
+    );
+    return response.submissions;
   },
 
   // Get contest ranking
@@ -524,9 +585,9 @@ export const contestService = {
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = (await apiFetch(
+    const response = await apiFetch<ContestRankingResponse>(
       `/user/contests/${contestId}/ranking?${searchParams.toString()}`
-    )) as any;
+    );
     return response;
   },
 };
@@ -544,8 +605,8 @@ export const problemService = {
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = (await apiFetch(`/problem/list?${searchParams.toString()}`)) as any;
-    return response.problems as Problem[];
+    const response = await apiFetch<ProblemsResponse>(`/problem/list?${searchParams.toString()}`);
+    return response.problems;
   },
 
   // Get problem (contest-aware)
@@ -555,8 +616,8 @@ export const problemService = {
     }
 
     // Fallback to admin problem endpoint
-    const response = (await apiFetch(`/problem/${problemId}`)) as any;
-    return response as Problem;
+    const response = await apiFetch<Problem>(`/problem/${problemId}`);
+    return response;
   },
 
   // Submit code (contest-aware)
@@ -574,10 +635,10 @@ export const problemService = {
     }
 
     // Fallback to general submission endpoint
-    const response = (await apiFetch(`/submission`, {
+    const response = await apiFetch<SubmissionResponse>(`/submission`, {
       method: 'POST',
       body: JSON.stringify(data),
-    })) as any;
+    });
     return response;
   },
 
@@ -598,11 +659,11 @@ export const problemService = {
     }
 
     // Fallback to general self-test endpoint
-    const response = (await apiFetch(`/self-test`, {
+    const response = await apiFetch<TestResponse>(`/self-test`, {
       method: 'POST',
       body: JSON.stringify(data),
-    })) as any;
-    return response.uuid as string;
+    });
+    return response.uuid;
   },
 };
 
@@ -628,10 +689,10 @@ export interface TestCase {
 }
 
 export interface SelfTestResult {
-  success: boolean;
-  output: string;
-  executionTime: string;
-  memory: string;
-  verdict?: string;
-  stderr?: string;
+  complieMsg: string;
+  isCompiled: boolean;
+  memory: number;
+  stderr: string;
+  stdout: string;
+  time: number;
 }

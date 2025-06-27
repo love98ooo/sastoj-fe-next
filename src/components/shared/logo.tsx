@@ -22,10 +22,7 @@ export function Logo({ width = 48, height = 48, alt = 'SASTOJ Logo', className }
   // Show a placeholder during hydration to avoid mismatch
   if (!mounted) {
     return (
-      <div 
-        className={`bg-muted animate-pulse rounded ${className}`}
-        style={{ width, height }}
-      />
+      <div className={`bg-muted animate-pulse rounded ${className}`} style={{ width, height }} />
     );
   }
 
@@ -34,13 +31,6 @@ export function Logo({ width = 48, height = 48, alt = 'SASTOJ Logo', className }
   const logoSrc = currentTheme === 'dark' ? '/sastoj-dark.svg' : '/sastoj.svg';
 
   return (
-    <Image
-      src={logoSrc}
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      priority
-    />
+    <Image src={logoSrc} alt={alt} width={width} height={height} className={className} priority />
   );
-} 
+}

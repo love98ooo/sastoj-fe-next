@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
-import { SubmissionStatus, isStatusPending, mapApiStateToSubmissionStatus } from '../lib/submission-status';
+import {
+  SubmissionStatus,
+  isStatusPending,
+  mapApiStateToSubmissionStatus,
+} from '../lib/submission-status';
 
 interface SubmissionData {
   id: string;
@@ -125,8 +129,7 @@ export function useSubmissionPolling({
     try {
       await mutate(); // 触发数据更新
       setAttempts(prev => prev + 1);
-    } catch (error) {
-      console.error('Polling error:', error);
+    } catch {
       setAttempts(prev => prev + 1);
     }
   };
@@ -265,8 +268,7 @@ export function useSelfTestPolling({
     try {
       await mutate(); // 触发数据更新
       setAttempts(prev => prev + 1);
-    } catch (error) {
-      console.error('Self test polling error:', error);
+    } catch {
       setAttempts(prev => prev + 1);
     }
   };

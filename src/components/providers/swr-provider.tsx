@@ -16,8 +16,8 @@ export function SWRProvider({ children }: SWRProviderProps) {
         dedupingInterval: 2000, // Dedup requests within 2 seconds
         errorRetryCount: 3, // Retry failed requests 3 times
         errorRetryInterval: 1000, // Wait 1 second between retries
-        onError: error => {
-          console.error('SWR Error:', error);
+        onError: () => {
+          // Handle SWR errors silently or with proper error handling
         },
       }}
     >

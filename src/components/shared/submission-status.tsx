@@ -45,13 +45,15 @@ export function SubmissionStatusBadge({
   };
 
   return (
-    <Badge className={cn(
-      'flex items-center transition-all duration-200 cursor-default',
-      statusInfo.bg,
-      statusInfo.text,
-      statusInfo.hover,
-      className
-    )}>
+    <Badge
+      className={cn(
+        'flex items-center transition-all duration-200 cursor-default',
+        statusInfo.bg,
+        statusInfo.text,
+        statusInfo.hover,
+        className
+      )}
+    >
       {getStatusIcon()}
       {statusInfo.label}
     </Badge>
@@ -75,8 +77,6 @@ export function SubmissionStatusIndicator({
   useEnglish = false,
   className,
 }: SubmissionStatusIndicatorProps) {
-  const statusInfo = getStatusInfo(status, useEnglish);
-
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <SubmissionStatusBadge status={status} useEnglish={useEnglish} />

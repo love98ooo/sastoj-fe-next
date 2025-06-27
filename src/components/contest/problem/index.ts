@@ -3,4 +3,4 @@ export * from './CodeEditorPanel';
 export * from './SubmissionsPanel';
 export * from './SubmissionDetailModal';
 export * from './TestCasesPanel';
-export * from './SelfTestResultPanel'; 
+export * from './SelfTestResultPanel';

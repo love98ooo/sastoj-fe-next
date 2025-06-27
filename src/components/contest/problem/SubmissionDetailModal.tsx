@@ -6,12 +6,10 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from 'next-themes';
 import { SubmissionStatusIndicator } from '@/components/shared/submission-status';
-import { SubmissionStatus, mapApiStateToSubmissionStatus } from '@/lib/submission-status';
+import { mapApiStateToSubmissionStatus } from '@/lib/submission-status';
 import { formatDate } from '@/lib/utils';
-import { Submission, SubmissionDetail, TestCase } from '@/lib/api';
+import { Submission, SubmissionDetail } from '@/lib/api';
 import { useToast } from '@/hooks';
-
-
 
 // 语言映射表，将提交语言映射到高亮库使用的语言标识符
 const languageHighlightMap: Record<string, string> = {
@@ -52,12 +50,10 @@ export function SubmissionDetailModal({
   onOpenChange,
   selectedSubmission,
   submissionDetail,
-  isLoading
+  isLoading,
 }: SubmissionDetailModalProps) {
   const { resolvedTheme } = useTheme();
   const { toast } = useToast();
-
-
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -68,8 +64,7 @@ export function SubmissionDetailModal({
         title: '复制成功',
         description: '内容已复制到剪贴板',
       });
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
+    } catch {
       toast({
         variant: 'destructive',
         title: '复制失败',
@@ -103,9 +98,7 @@ export function SubmissionDetailModal({
                   </div>
                   {submissionDetail.totalTime && (
                     <div>
-                      <label className="text-xs font-medium text-muted-foreground">
-                        执行时间
-                      </label>
+                      <label className="text-xs font-medium text-muted-foreground">执行时间</label>
                       <div className="text-sm font-mono">
                         {Math.round(submissionDetail.totalTime / 1000000)}ms
                       </div>
@@ -113,9 +106,7 @@ export function SubmissionDetailModal({
                   )}
                   {submissionDetail.maxMemory && (
                     <div>
-                      <label className="text-xs font-medium text-muted-foreground">
-                        内存使用
-                      </label>
+                      <label className="text-xs font-medium text-muted-foreground">内存使用</label>
                       <div className="text-sm font-mono">
                         {Math.round(submissionDetail.maxMemory / 1024)}KB
                       </div>
@@ -292,9 +283,7 @@ export function SubmissionDetailModal({
                   </div>
                   {submissionDetail.updatedAt && (
                     <div>
-                      <label className="text-xs font-medium text-muted-foreground">
-                        更新时间
-                      </label>
+                      <label className="text-xs font-medium text-muted-foreground">更新时间</label>
                       <div className="text-sm">{formatDate(submissionDetail.updatedAt)}</div>
                     </div>
                   )}

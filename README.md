@@ -92,6 +92,7 @@ pnpm start
 - 采用 Tailwind CSS 进行样式设计
 
 组件开发示例：
+
 ```typescript
 // 基于 Radix UI 的按钮组件
 import { Slot } from '@radix-ui/react-slot';

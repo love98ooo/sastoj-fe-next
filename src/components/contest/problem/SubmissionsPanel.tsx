@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { SubmissionStatusIndicator } from '@/components/shared/submission-status';
-import { SubmissionStatus, getSubmissionStatus } from '@/lib/submission-status';
+import { getSubmissionStatus } from '@/lib/submission-status';
 import { Submission } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 
@@ -10,7 +10,6 @@ interface SubmissionsPanelProps {
 }
 
 export function SubmissionsPanel({ submissions, onSubmissionClick }: SubmissionsPanelProps) {
-
   return (
     <div className="mt-4 h-[calc(100vh-140px)] overflow-y-auto pr-2">
       <div className="space-y-3">
@@ -43,4 +42,4 @@ export function SubmissionsPanel({ submissions, onSubmissionClick }: Submissions
       </div>
     </div>
   );
-} 
+}

@@ -1,6 +1,14 @@
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
-import { contestService, problemService, submissionApi, userApi, groupApi, authApi } from '../lib/api';
+import {
+  contestService,
+  problemService,
+  submissionApi,
+  userApi,
+  groupApi,
+  authApi,
+  Submission,
+} from '../lib/api';
 import type { SWRConfiguration } from 'swr';
 import { useSubmissionPolling, useSelfTestPolling } from './use-submission-polling';
 import { useCallback } from 'react';
@@ -35,7 +43,8 @@ export function useContestRanking(contestId: number, params?: { size?: number; c
 export function useJoinContest() {
   return useSWRMutation(
     '/user/contests/join',
-    async (key: string, { arg }: { arg: { contestId: number; isJoin: boolean } }) => {
+    async (_key: string, { arg: _arg }: { arg: { contestId: number; isJoin: boolean } }) => {
+      // Currently returning mock data - replace with actual API call
       return {
         code: 200,
         message: 'success',
@@ -43,7 +52,7 @@ export function useJoinContest() {
           isJoined: true,
         },
       };
-      //   return contestService.joinContest(arg.contestId, arg.isJoin)
+      //   return contestService.joinContest(_arg.contestId, _arg.isJoin)
     }
   );
 }
@@ -59,7 +68,7 @@ export function useProblems(
   return useSWR(
     contestId
       ? `/contests/${contestId}/problems`
-      : `/problems?${new URLSearchParams(params as any).toString()}`,
+      : `/problems?${new URLSearchParams(params as Record<string, string>).toString()}`,
     () => problemService.getProblems(contestId, params)
   );
 }
@@ -166,7 +175,7 @@ export function useSubmitCode() {
   return useSWRMutation(
     '/submit',
     async (
-      key: string,
+      _key: string,
       {
         arg,
       }: {
@@ -187,7 +196,7 @@ export function useSelfTest() {
   return useSWRMutation(
     '/self-test',
     async (
-      key: string,
+      _key: string,
       {
         arg,
       }: {
@@ -209,7 +218,7 @@ export function useSelfTest() {
 export function useLogin() {
   return useSWRMutation(
     '/login',
-    async (key: string, { arg }: { arg: { username: string; password: string } }) => {
+    async (_key: string, { arg }: { arg: { username: string; password: string } }) => {
       return authApi.login(arg);
     }
   );
@@ -228,8 +237,8 @@ export function useSubmissionWithPolling(
   options?: {
     interval?: number;
     maxAttempts?: number;
-    onStatusChange?: (submission: any) => void;
-    onComplete?: (submission: any) => void;
+    onStatusChange?: (submission: Submission) => void;
+    onComplete?: (submission: Submission) => void;
   }
 ) {
   const {
@@ -252,7 +261,6 @@ export function useSubmissionWithPolling(
 
   // 使用useCallback确保startPolling函数引用稳定
   const startPolling = useCallback(() => {
-    console.log('Starting submission polling for:', submissionId);
     if (submissionId && contestId) {
       // 检查是否已经在轮询以避免重复启动
       if (!isPolling) {
@@ -272,6 +280,16 @@ export function useSubmissionWithPolling(
   };
 }
 
+// Define SelfTestData interface to match the polling hook
+interface SelfTestData {
+  isCompiled: boolean;
+  complieMsg?: string;
+  stdout?: string;
+  stderr?: string;
+  time: number;
+  memory: number;
+}
+
 // 使用自测轮询的统一 hook
 export function useSelfTestWithPolling(
   selfTestId?: string,
@@ -279,8 +297,8 @@ export function useSelfTestWithPolling(
   options?: {
     interval?: number;
     maxAttempts?: number;
-    onStatusChange?: (result: any) => void;
-    onComplete?: (result: any) => void;
+    onStatusChange?: (result: SelfTestData) => void;
+    onComplete?: (result: SelfTestData) => void;
   }
 ) {
   const {
@@ -303,7 +321,6 @@ export function useSelfTestWithPolling(
 
   // 使用useCallback确保startPolling函数引用稳定
   const startPolling = useCallback(() => {
-    console.log('Starting self-test polling for:', selfTestId);
     if (selfTestId && contestId) {
       // 检查是否已经在轮询以避免重复启动
       if (!isPolling) {

@@ -1,7 +1,13 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CodeEditor, SUPPORTED_LANGUAGES } from '@/components/shared/code-editor';
 import { PendingSubmissionIndicator } from '@/components/shared/submission-status';
-import { SubmissionStatus, getSubmissionStatus } from '@/lib/submission-status';
+import { getSubmissionStatus } from '@/lib/submission-status';
 import { Submission } from '@/lib/api';
 
 interface CodeEditorPanelProps {
@@ -19,7 +25,7 @@ export function CodeEditorPanel({
   onCodeChange,
   onLanguageChange,
   isSubmissionPolling,
-  latestSubmission
+  latestSubmission,
 }: CodeEditorPanelProps) {
   return (
     <div className="flex flex-col h-full">
@@ -52,4 +58,4 @@ export function CodeEditorPanel({
       )}
     </div>
   );
-} 
+}

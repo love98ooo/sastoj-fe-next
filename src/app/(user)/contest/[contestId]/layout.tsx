@@ -1,8 +1,6 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

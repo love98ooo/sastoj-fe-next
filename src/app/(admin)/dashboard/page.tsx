@@ -102,7 +102,7 @@ export default function DashboardPage() {
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           新增题目{' '}
                           <span className="font-medium text-gray-900 dark:text-white">
-                            "两数之和"
+                            &ldquo;两数之和&rdquo;
                           </span>
                         </p>
                       </div>

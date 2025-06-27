@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { useContestRanking } from '@/hooks';
 import { CONTEST_TYPES } from '@/lib/contest-types';
 import { useContestStore } from '@/lib/store';
@@ -35,17 +33,13 @@ interface RankingUser {
   penalty: number;
 }
 
-interface RankingResponse {
-  users: RankingUser[];
-}
-
 export default function ContestRankingPage() {
   const params = useParams();
   const contestId = parseInt(params.contestId as string);
-  const [pagination, setPagination] = useState({
+  const pagination = {
     current: 1,
     size: 10,
-  });
+  };
 
   // 从store中获取比赛信息，而不是通过API请求
   const { getContest } = useContestStore();
