@@ -7,4 +7,5 @@ export {
   PendingSubmissionIndicator,
 } from './submission-status';
 export { ThemeToggle } from './theme-toggle';
+export { Logo } from './logo';
 export type { Language } from './code-editor';

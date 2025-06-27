@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { tokenManager } from '@/lib/auth';
+import { Logo } from '@/components/shared';
 
 export default function HomePage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function HomePage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-2">
-            <Image src="/sastoj.svg" alt="SASTOJ Logo" width={48} height={48} />
+            <Logo width={48} height={48} alt="SASTOJ Logo" />
           </div>
           <CardTitle className="text-2xl font-bold">SASTOJ</CardTitle>
           <CardDescription>在线评测系统</CardDescription>

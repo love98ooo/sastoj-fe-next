@@ -18,10 +18,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'SASTOJ - Online Judge System',
   description: 'SASTOJ Online Judge System for competitive programming',
-  icons: {
-    icon: '/sastoj.svg',
-    apple: '/sastoj.svg',
-  },
+  icons: [
+    {
+      rel: 'icon',
+      url: '/sastoj.svg',
+      media: '(prefers-color-scheme: light)',
+    },
+    {
+      rel: 'icon',
+      url: '/sastoj-dark.svg',
+      media: '(prefers-color-scheme: dark)',
+    },
+    {
+      rel: 'apple-touch-icon',
+      url: '/sastoj.svg',
+    },
+  ],
 };
 
 export default function RootLayout({

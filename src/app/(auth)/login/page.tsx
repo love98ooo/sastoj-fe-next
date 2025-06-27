@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useLogin } from '@/hooks';
 import { useToast } from '@/hooks';
-import { ThemeToggle } from '@/components/shared';
+import { ThemeToggle, Logo } from '@/components/shared';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -78,7 +78,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex items-center justify-center mb-2">
-            <Image src="/sastoj.svg" alt="SASTOJ 标志" width={48} height={48} />
+            <Logo width={48} height={48} alt="SASTOJ 标志" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">SASTOJ</h1>
           <p className="mt-2 text-sm text-muted-foreground">在线评测系统</p>

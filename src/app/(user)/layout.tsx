@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { LogOut, Trophy } from 'lucide-react';
 import { useAuthGuard } from '@/lib/auth';
-import { ThemeToggle } from '@/components/shared';
+import { ThemeToggle, Logo } from '@/components/shared';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -92,8 +92,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
             {/* Logo and Main Navigation */}
             <div className="flex items-center">
               <Link href="/contest" className="flex items-center space-x-2">
-                <Image src="/sastoj.svg" alt="SASTOJ Logo" width={28} height={28} className="mr-2" />
-                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                <Logo width={28} height={28} alt="SASTOJ Logo" className="mr-2" />
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent dark:text-white">
                   SASTOJ
                 </div>
               </Link>
