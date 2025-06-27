@@ -1,26 +1,186 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Tokyo Night color palette */
+    --background: 225 27% 7%; /* #1a1b26 - main background */
+    --foreground: 230 100% 95%; /* #c0caf5 - main text */
+    --card: 226 27% 9%; /* #24283b - card background */
+    --card-foreground: 230 100% 95%; /* #c0caf5 - card text */
+    --popover: 226 27% 9%; /* #24283b - popover background */
+    --popover-foreground: 230 100% 95%; /* #c0caf5 - popover text */
+    --primary: 267 84% 81%; /* #bb9af7 - purple accent */
+    --primary-foreground: 225 27% 7%; /* #1a1b26 - text on primary */
+    --secondary: 226 27% 14%; /* #414868 - secondary background */
+    --secondary-foreground: 230 100% 95%; /* #c0caf5 - secondary text */
+    --muted: 226 27% 14%; /* #414868 - muted background */
+    --muted-foreground: 220 14% 71%; /* #a9b1d6 - muted text */
+    --accent: 0 72% 71%; /* #f7768e - red accent */
+    --accent-foreground: 225 27% 7%; /* #1a1b26 - text on accent */
+    --destructive: 0 72% 71%; /* #f7768e - red/destructive */
+    --destructive-foreground: 225 27% 7%; /* #1a1b26 - text on destructive */
+    --border: 226 27% 14%; /* #414868 - borders */
+    --input: 226 27% 14%; /* #414868 - input background */
+    --ring: 267 84% 81%; /* #bb9af7 - focus ring */
+  }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius: var(--radius);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom styles for markdown content */
+@layer components {
+  .problem-content .prose {
+    max-width: none;
+  }
+
+  /* 自定义滚动条样式 */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground));
+    border-radius: 20px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary));
+  }
+
+  .problem-content h1,
+  .problem-content h2,
+  .problem-content h3 {
+    @apply text-foreground font-semibold;
+  }
+
+  .problem-content h1 {
+    @apply text-xl mb-4 mt-6;
+  }
+
+  .problem-content h2 {
+    @apply text-lg mb-3 mt-5;
+  }
+
+  .problem-content h3 {
+    @apply text-base mb-2 mt-4;
+  }
+
+  .problem-content p {
+    @apply mb-4 text-muted-foreground leading-relaxed;
+  }
+
+  .problem-content ul,
+  .problem-content ol {
+    @apply mb-4 pl-6;
+  }
+
+  .problem-content li {
+    @apply mb-1 text-muted-foreground;
+  }
+
+  .problem-content blockquote {
+    @apply border-l-4 border-primary pl-4 py-2 bg-accent rounded-r mb-4;
+  }
+
+  .problem-content pre {
+    @apply bg-muted rounded-lg p-4 overflow-x-auto mb-4;
+  }
+
+  .problem-content code {
+    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+
+  .problem-content pre code {
+    @apply bg-transparent p-0;
+  }
+
+  .problem-content table {
+    @apply w-full border-collapse border border-border mb-4;
+  }
+
+  .problem-content th {
+    @apply border border-border px-4 py-2 bg-muted font-semibold text-left;
+  }
+
+  .problem-content td {
+    @apply border border-border px-4 py-2;
+  }
+
+  /* KaTeX math rendering styles */
+  .problem-content .katex {
+    font-size: 1.1em;
+  }
+
+  .problem-content .katex-display {
+    @apply my-4;
+  }
+
+  .problem-content .katex-display > .katex {
+    @apply text-center;
+  }
+
+  /* Inline math should be slightly smaller */
+  .problem-content .katex:not(.katex-display .katex) {
+    font-size: 1em;
+  }
 }

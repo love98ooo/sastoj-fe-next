@@ -1,7 +1,11 @@
-import type { NextConfig } from "next";
+import withRspack from 'next-rspack';
+import { NextConfig } from 'next';
 
+/** @type {NextConfig} */
 const nextConfig: NextConfig = {
-  /* config options here */
+  // 在此处放置Next.js配置
+  reactStrictMode: true,
+  swcMinify: true,
 };
 
-export default nextConfig;
+export default withRspack(nextConfig);
