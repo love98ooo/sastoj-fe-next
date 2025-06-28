@@ -22,16 +22,6 @@ function getSuccess(result: SelfTestResult): boolean {
   return result.isCompiled && (!result.stderr || !result.stderr.trim());
 }
 
-function getVerdict(result: SelfTestResult): string {
-  if (!result.isCompiled) {
-    return 'Compile Error';
-  }
-  if (result.stderr && result.stderr.trim()) {
-    return 'Runtime Error';
-  }
-  return 'Accepted';
-}
-
 export function SelfTestResultPanel({
   result,
   isLoading,
