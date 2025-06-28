@@ -155,8 +155,7 @@ export function ContestFormDialog({
       // 关闭对话框并刷新数据
       onOpenChange(false);
       onSuccess();
-    } catch (error) {
-      console.error('Failed to save contest:', error);
+    } catch {
       toast({
         title: '错误',
         description: '保存失败，请重试',

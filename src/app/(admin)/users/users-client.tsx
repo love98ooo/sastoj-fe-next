@@ -66,8 +66,7 @@ export function UsersClient() {
         ...prev,
         total: response.total,
       }));
-    } catch (error) {
-      console.error('Failed to load users:', error);
+    } catch {
       toast({
         title: '错误',
         description: '加载用户列表失败',
@@ -83,8 +82,12 @@ export function UsersClient() {
     try {
       const response = await groupApi.getList();
       setGroups(response.groups);
-    } catch (error) {
-      console.error('Failed to load groups:', error);
+    } catch {
+      toast({
+        title: '错误',
+        description: '加载用户组列表失败',
+        variant: 'destructive',
+      });
     }
   };
 

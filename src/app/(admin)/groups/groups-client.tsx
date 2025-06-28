@@ -60,8 +60,7 @@ function GroupsTable({ onRefresh }: GroupsTableProps) {
       setLoading(true);
       const response = await groupApi.getList();
       setGroups(response.groups);
-    } catch (error) {
-      console.error('Failed to fetch groups:', error);
+    } catch {
       toast({
         title: '错误',
         description: '无法加载用户组数据',
@@ -132,10 +131,9 @@ function GroupsTable({ onRefresh }: GroupsTableProps) {
       fetchGroups(); // 删除成功后刷新数据
       onRefresh(); // 通知父组件
     } catch (error) {
-      console.error('Failed to delete group:', error);
       toast({
         title: '错误',
-        description: '删除失败，请重试',
+        description: `删除失败，请重试: ${error}`,
         variant: 'destructive',
       });
     } finally {
@@ -231,7 +229,7 @@ function GroupsTable({ onRefresh }: GroupsTableProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
-              您确定要删除用户组 "{groupToDelete?.name}" 吗？此操作不可逆。
+              您确定要删除用户组 &quot;{groupToDelete?.name}&quot; 吗？此操作不可逆。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -38,6 +38,7 @@ import {
   BatchUserCreateRequest,
   BatchUserCreateResponse,
   UsersResponse,
+  ProblemListResponse,
 } from './schemas';
 import { ApiValidator } from './api-validator';
 
@@ -150,7 +151,7 @@ export const problemApi = {
       problem_type?: string;
       tags?: string[];
     } = {}
-  ): Promise<PaginatedResponse<Problem>> => {
+  ): Promise<ProblemListResponse> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -166,13 +167,15 @@ export const problemApi = {
 
   getById: (id: string): Promise<Problem> => api.get(`/problem/${id}`),
 
-  add: (data: Partial<Problem>): Promise<Problem> => api.post('/problem', data),
+  add: (data: Partial<Problem>): Promise<{ id: string }> => api.post('/problem', data),
 
-  edit: (id: string, data: Partial<Problem>): Promise<Problem> => api.put(`/problem/${id}`, data),
+  edit: (data: Partial<Problem>): Promise<{ success: boolean }> => api.put('/problem', data),
 
-  delete: (id: string): Promise<void> => api.delete(`/problem/${id}`),
+  delete: (id: string): Promise<{ success: boolean }> => api.delete(`/problem/${id}`),
 
-  getTypes: (): Promise<string[]> => api.get('/problem/types'),
+  getTypes: (): Promise<{
+    types: { id: string; name: string; slug: string; description: string; judge: string }[];
+  }> => api.get('/problem-types'),
 };
 
 export const contestApi = {

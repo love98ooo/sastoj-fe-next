@@ -112,12 +112,18 @@ export const ContestSchema = z.object({
 
 export const ProblemSchema = z.object({
   id: z.string(),
-  type: z.string(),
+  typeId: z.string(),
   title: z.string(),
   content: z.string(),
-  score: z.number(),
+  score: z.number().optional(),
+  point: z.number().optional(),
+  contestId: z.string().optional(),
+  caseVersion: z.number().optional(),
   index: z.number().optional(),
-  metadata: z.record(z.string(), z.string()),
+  config: z.string(),
+  ownerId: z.number(),
+  visibility: z.string(),
+  metadata: z.record(z.string(), z.any()),
   // 可选字段
   difficulty: z.string().optional(),
   time_limit: z.number().optional(),
@@ -135,6 +141,12 @@ export const ProblemSchema = z.object({
   tags: z.array(z.string()).optional(),
   accepted_count: z.number().optional(),
   submission_count: z.number().optional(),
+});
+
+export const ProblemListResponseSchema = z.object({
+  currency: z.number().optional(),
+  total: z.number(),
+  problems: z.array(ProblemSchema),
 });
 
 export const ContestProblemSchema = z.object({
@@ -270,3 +282,4 @@ export type UserCreateResponse = z.infer<typeof UserCreateResponseSchema>;
 export type BatchUserCreateRequest = z.infer<typeof BatchUserCreateRequestSchema>;
 export type BatchUserCreateResponse = z.infer<typeof BatchUserCreateResponseSchema>;
 export type UsersResponse = z.infer<typeof UsersResponseSchema>;
+export type ProblemListResponse = z.infer<typeof ProblemListResponseSchema>;

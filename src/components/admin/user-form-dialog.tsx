@@ -157,8 +157,7 @@ export function UserFormDialog({
       onSuccess();
       onOpenChange(false);
       resetForm();
-    } catch (error) {
-      console.error('Failed to save user:', error);
+    } catch {
       toast({
         title: '错误',
         description: isEditing ? '更新失败，请重试' : '创建失败，请重试',

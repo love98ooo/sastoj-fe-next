@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -31,13 +31,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash, Search } from 'lucide-react';
+import { Plus, Pencil, Trash, Search, BookOpen } from 'lucide-react';
 import { contestApi } from '@/lib/api';
 import { Contest } from '@/lib/schemas';
 import { useToast } from '@/hooks/use-toast';
 import { ContestFormDialog } from '@/components/admin/contest-form-dialog';
 import { getContestTypeName } from '@/lib/contest-types';
 import { formatDate } from '@/lib/utils';
+import Link from 'next/link';
 
 function formatDateTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -92,8 +93,7 @@ export function ContestsClient() {
       });
 
       setAllContests(response.contests || []);
-    } catch (error) {
-      console.error('Failed to fetch contests:', error);
+    } catch {
       toast({
         title: '错误',
         description: '无法加载比赛数据',
@@ -186,8 +186,7 @@ export function ContestsClient() {
 
       // 在前端更新数据，删除已删除的比赛
       setAllContests(prev => prev.filter(c => c.id !== contestToDelete.id));
-    } catch (error) {
-      console.error('Failed to delete contest:', error);
+    } catch {
       toast({
         title: '错误',
         description: '删除失败，请重试',
@@ -319,6 +318,11 @@ export function ContestsClient() {
                       <TableCell>{getContestStatus(contest.status)}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/contests/${contest.id}`}>
+                              <BookOpen className="h-4 w-4 mr-1" /> 详情
+                            </Link>
+                          </Button>
                           <Button variant="outline" size="sm" onClick={() => handleEdit(contest)}>
                             <Pencil className="h-4 w-4 mr-1" /> 编辑
                           </Button>
@@ -354,7 +358,7 @@ export function ContestsClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
-              您确定要删除比赛 "{contestToDelete?.title}"
+              您确定要删除比赛 &quot;{contestToDelete?.title}&quot;
               吗？此操作不可逆，且会删除与该比赛相关的所有数据。
             </AlertDialogDescription>
           </AlertDialogHeader>

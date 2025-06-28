@@ -105,8 +105,7 @@ export function BatchUserDialog({ open, onOpenChange, onSuccess, groups }: Batch
 
       // 通知父组件刷新数据
       onSuccess();
-    } catch (error) {
-      console.error('Failed to create batch users:', error);
+    } catch {
       toast({
         title: '错误',
         description: '批量创建用户失败，请重试',

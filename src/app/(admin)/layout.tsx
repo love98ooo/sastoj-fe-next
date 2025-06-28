@@ -1,8 +1,7 @@
-import { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
 import {
-  BarChart3,
-  FileText,
   Users,
   ClipboardList,
   Settings,
@@ -10,31 +9,53 @@ import {
   User,
   UserPlus,
   Trophy,
+  LayoutDashboard,
+  PanelLeftClose,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/shared';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import { Logo } from '@/components/shared/logo';
+import { usePathname } from 'next/navigation';
+import { contestApi } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
-export const metadata: Metadata = {
-  title: 'SASTOJ - 管理后台',
-  description: 'SASTOJ 在线判题系统管理后台',
-};
+// 定义菜单项类型
+interface MenuItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
 
 // 导航菜单项
-const navigationItems = [
+const navigationItems: MenuItem[] = [
   {
     title: '仪表盘',
     href: '/dashboard',
-    icon: BarChart3,
+    icon: LayoutDashboard,
   },
   {
     title: '比赛管理',
     href: '/contests',
     icon: Trophy,
-  },
-  {
-    title: '题目管理',
-    href: '/problems',
-    icon: FileText,
   },
   {
     title: '用户管理',
@@ -59,75 +80,191 @@ const navigationItems = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [contestName, setContestName] = useState<string>('');
+
+  // 获取比赛名称
+  useEffect(() => {
+    const paths = pathname.split('/').filter(Boolean);
+    if (paths.length > 1 && paths[0] === 'contests') {
+      const contestId = paths[1];
+      contestApi
+        .getById(contestId)
+        .then(contest => {
+          setContestName(contest.title || `比赛 #${contestId}`);
+        })
+        .catch(() => {
+          // 如果获取失败，使用默认值
+          setContestName(`比赛 #${contestId}`);
+        });
+    }
+  }, [pathname]);
+
+  // 生成面包屑导航
+  const renderBreadcrumb = () => {
+    const paths = pathname.split('/').filter(Boolean);
+
+    // 如果是根路径，直接显示仪表盘
+    if (paths.length === 0) {
+      return (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbPage>仪表盘</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      );
+    }
+
+    // 构建面包屑导航项
+    const breadcrumbItems: { title: string; href: string; isActive: boolean }[] = [];
+
+    // 第一个项目始终是管理后台，链接到仪表盘
+    breadcrumbItems.push({
+      title: '管理后台',
+      href: '/dashboard',
+      isActive: false,
+    });
+
+    // 处理比赛相关路径
+    if (paths[0] === 'contests') {
+      // 添加比赛管理层级
+      breadcrumbItems.push({
+        title: '比赛管理',
+        href: '/contests',
+        isActive: paths.length === 1,
+      });
+
+      // 如果是比赛详情页
+      if (paths.length > 1) {
+        const contestId = paths[1];
+        breadcrumbItems.push({
+          title: contestName || `比赛 #${contestId}`,
+          href: `/contests/${contestId}`,
+          isActive: paths.length === 2,
+        });
+
+        // 如果是比赛问题页面
+        if (paths.length > 2 && paths[2] === 'problems') {
+          breadcrumbItems.push({
+            title: '题目管理',
+            href: `/contests/${contestId}/problems`,
+            isActive: true,
+          });
+        }
+      }
+    }
+    // 处理其他页面
+    else {
+      // 查找当前路径对应的菜单项
+      const menuItem = navigationItems.find(item => item.href.includes(`/${paths[0]}`));
+
+      if (menuItem) {
+        breadcrumbItems.push({
+          title: menuItem.title,
+          href: menuItem.href,
+          isActive: true,
+        });
+      }
+    }
+
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          {breadcrumbItems.map((item, index) => (
+            <BreadcrumbItem key={index}>
+              {!item.isActive ? (
+                <>
+                  <BreadcrumbLink asChild>
+                    <Link href={item.href}>{item.title}</Link>
+                  </BreadcrumbLink>
+                  {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
+                </>
+              ) : (
+                <BreadcrumbPage>{item.title}</BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          ))}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex h-screen">
-        {/* 侧边栏 */}
-        <aside className="w-64 bg-card border-r border-border">
+    <SidebarProvider className="min-h-screen w-full">
+      <Sidebar className="h-screen" variant="inset">
+        <SidebarContent>
           {/* Logo 区域 */}
-          <div className="flex h-16 items-center border-b border-border px-6">
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <BarChart3 className="h-4 w-4" />
-              </div>
+          <div className="flex h-16 items-center px-6 border-b border-border">
+            <div className="flex items-center space-x-2">
+              <Logo className="h-8 w-8" />
               <div className="flex flex-col">
                 <span className="text-sm font-semibold">SASTOJ</span>
                 <span className="text-xs text-muted-foreground">管理后台</span>
               </div>
-            </Link>
+            </div>
           </div>
 
           {/* 导航菜单 */}
-          <nav className="p-4">
-            <ul className="space-y-1">
-              {navigationItems.map(item => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </aside>
+          <SidebarGroup>
+            <h3 className="mb-2 mt-4 px-6 text-sm font-medium text-muted-foreground">平台</h3>
+            <SidebarMenu className="px-3">
+              {navigationItems.map(item => {
+                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-        {/* 主内容区域 */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 顶部导航栏 */}
-          <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-lg font-semibold">管理后台</h1>
-            </div>
+                return (
+                  <SidebarMenuItem key={item.href} className="my-1">
+                    <Link href={item.href} className="w-full block">
+                      <SidebarMenuButton isActive={isActive} className="w-full px-3">
+                        <item.icon className="h-[18px] w-[18px] mr-2" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
 
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
-
-              {/* 用户信息 */}
-              <div className="flex items-center space-x-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  <User className="h-4 w-4" />
+          {/* 用户信息 - 放在底部 */}
+          <div className="mt-auto p-4 border-t border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                  <User className="h-5 w-5" />
                 </div>
-                <div className="hidden md:block">
-                  <div className="text-sm font-medium">管理员</div>
-                  <div className="text-xs text-muted-foreground">admin@sastoj.com</div>
+                <div>
+                  <p className="text-sm font-medium">管理员</p>
+                  <p className="text-xs text-muted-foreground">admin@sastoj.com</p>
                 </div>
               </div>
-
-              <Button variant="ghost" size="sm">
-                <LogOut className="h-4 w-4 mr-2" />
-                退出
+              <Button variant="ghost" size="icon">
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
-          </header>
+          </div>
+        </SidebarContent>
+      </Sidebar>
 
-          {/* 页面内容 */}
-          <main className="flex-1 overflow-auto p-6">{children}</main>
-        </div>
-      </div>
-    </div>
+      {/* 主内容区域 */}
+      <SidebarInset className="bg-background">
+        {/* 顶部导航栏 */}
+        <header className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
+          <SidebarTrigger>
+            <PanelLeftClose className="h-5 w-5" />
+          </SidebarTrigger>
+
+          <div className="flex items-center gap-2">{renderBreadcrumb()}</div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* 页面内容 */}
+        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
