@@ -34,23 +34,66 @@ export const ProblemTypesResponseSchema = z.object({
 export const UserSchema = z.object({
   id: z.string(),
   username: z.string(),
-  email: z.email(),
-  name: z.string(),
-  role: z.string(),
-  group_ids: z.array(z.number()),
-  group_names: z.array(z.string()),
-  created_at: z.string(),
-  updated_at: z.string(),
-  banned: z.boolean(),
+  groupIds: z.array(z.number()),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  state: z.number(),
+});
+
+// 用户管理相关的 schema
+export const UserCreateRequestSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+  groupIds: z.array(z.number()),
+});
+
+export const UserUpdateRequestSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  groupIds: z.array(z.string()),
+  state: z.number(),
+});
+
+export const UserCreateResponseSchema = z.object({
+  id: z.string(),
+});
+
+export const BatchUserCreateRequestSchema = z.object({
+  groupIds: z.array(z.number()),
+  number: z.number(),
+});
+
+export const BatchUserCreateResponseSchema = z.object({
+  users: z.array(
+    z.object({
+      username: z.string(),
+      password: z.string(),
+    })
+  ),
+});
+
+export const UsersResponseSchema = z.object({
+  users: z.array(UserSchema),
+  total: z.number(),
+  current: z.number(),
+  size: z.number(),
 });
 
 export const GroupSchema = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.string(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  member_count: z.number(),
+});
+
+export const GroupsResponseSchema = z.object({
+  groups: z.array(GroupSchema),
+});
+
+export const GroupCreateResponseSchema = z.object({
+  id: z.string(),
+});
+
+export const GroupUpdateResponseSchema = z.object({
+  success: z.boolean(),
 });
 
 export const ContestSchema = z.object({
@@ -205,6 +248,9 @@ export type PaginatedResponse<T> = z.infer<
 export type ProblemType = z.infer<typeof ProblemTypeSchema>;
 export type User = z.infer<typeof UserSchema>;
 export type Group = z.infer<typeof GroupSchema>;
+export type GroupsResponse = z.infer<typeof GroupsResponseSchema>;
+export type GroupCreateResponse = z.infer<typeof GroupCreateResponseSchema>;
+export type GroupUpdateResponse = z.infer<typeof GroupUpdateResponseSchema>;
 export type Contest = z.infer<typeof ContestSchema>;
 export type Problem = z.infer<typeof ProblemSchema>;
 export type ContestProblem = z.infer<typeof ContestProblemSchema>;
@@ -218,3 +264,9 @@ export type RankingProblem = z.infer<typeof RankingProblemSchema>;
 export type RankingUser = z.infer<typeof RankingUserSchema>;
 export type ContestRankingResponse = z.infer<typeof ContestRankingResponseSchema>;
 export type SelfTestResponse = z.infer<typeof SelfTestResponseSchema>;
+export type UserCreateRequest = z.infer<typeof UserCreateRequestSchema>;
+export type UserUpdateRequest = z.infer<typeof UserUpdateRequestSchema>;
+export type UserCreateResponse = z.infer<typeof UserCreateResponseSchema>;
+export type BatchUserCreateRequest = z.infer<typeof BatchUserCreateRequestSchema>;
+export type BatchUserCreateResponse = z.infer<typeof BatchUserCreateResponseSchema>;
+export type UsersResponse = z.infer<typeof UsersResponseSchema>;

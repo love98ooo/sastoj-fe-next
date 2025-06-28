@@ -25,6 +25,19 @@ import {
   SelfTestResponse,
   User,
   Group,
+  GroupSchema,
+  GroupsResponseSchema,
+  GroupCreateResponseSchema,
+  GroupUpdateResponseSchema,
+  GroupsResponse,
+  GroupCreateResponse,
+  GroupUpdateResponse,
+  UserCreateRequest,
+  UserUpdateRequest,
+  UserCreateResponse,
+  BatchUserCreateRequest,
+  BatchUserCreateResponse,
+  UsersResponse,
 } from './schemas';
 import { ApiValidator } from './api-validator';
 
@@ -168,28 +181,27 @@ export const contestApi = {
       size?: number;
       current?: number;
       status?: string;
+      title?: string;
     } = {}
-  ): Promise<PaginatedResponse<Contest>> => {
+  ): Promise<{ contests: Contest[]; total: number; current: number; size: number }> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
         searchParams.append(key, String(value));
       }
     });
-    return api.get(`/contest/list?${searchParams.toString()}`);
+    return api.get(`/contest?${searchParams.toString()}`);
   },
 
   getById: (id: string): Promise<Contest> => api.get(`/contest/${id}`),
 
   add: (data: Partial<Contest>): Promise<Contest> => api.post('/contest', data),
 
-  edit: (id: string, data: Partial<Contest>): Promise<Contest> => api.put(`/contest/${id}`, data),
+  edit: (data: Partial<Contest>): Promise<Contest> => api.put(`/contest`, data),
 
   delete: (id: string): Promise<void> => api.delete(`/contest/${id}`),
 
-  join: (id: string): Promise<void> => api.post(`/contest/${id}/join`),
-
-  getProblems: (id: string): Promise<Problem[]> => api.get(`/contest/${id}/problems`),
+  rank: (id: string) => api.post(`/contest/${id}/rank`),
 
   getRanking: (
     id: string,
@@ -205,6 +217,13 @@ export const contestApi = {
     }
     return api.get(`/contest/${id}/ranking?${searchParams.toString()}`);
   },
+
+  addContestants: (groupId: number, contestId: number, role: number) =>
+    api.post(`/contest/contestants`, {
+      group_id: groupId,
+      contest_id: contestId,
+      role: role,
+    }),
 };
 
 export const submissionApi = {
@@ -269,6 +288,59 @@ export const submissionApi = {
 };
 
 export const userApi = {
+  // 获取用户列表 (管理员端)
+  getUsers: async (
+    params: {
+      current?: number;
+      size?: number;
+      group_ids?: string[];
+      username?: string;
+      state?: number;
+    } = {}
+  ): Promise<UsersResponse> => {
+    const searchParams = new URLSearchParams();
+
+    if (params.current) searchParams.set('current', params.current.toString());
+    if (params.size) searchParams.set('size', params.size.toString());
+    if (params.username) searchParams.set('username', params.username);
+    if (params.state !== undefined) searchParams.set('state', params.state.toString());
+
+    // group_ids 是数组，需要特殊处理
+    if (params.group_ids) {
+      params.group_ids.forEach(id => searchParams.append('group_ids', id));
+    }
+
+    const response = await apiFetch<UsersResponse>(`/users?${searchParams.toString()}`);
+    return response;
+  },
+
+  // 创建单个用户
+  createUser: async (data: UserCreateRequest): Promise<UserCreateResponse> => {
+    const response = await apiFetch<UserCreateResponse>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response;
+  },
+
+  // 批量创建用户
+  batchCreateUsers: async (data: BatchUserCreateRequest): Promise<BatchUserCreateResponse> => {
+    const response = await apiFetch<BatchUserCreateResponse>('/users/batch', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response;
+  },
+
+  // 更新用户
+  updateUser: async (data: UserUpdateRequest): Promise<void> => {
+    await apiFetch<void>('/users', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // 保留旧的方法以保持兼容性
   getList: (
     params: {
       size?: number;
@@ -299,21 +371,26 @@ export const groupApi = {
       size?: number;
       current?: number;
     } = {}
-  ): Promise<PaginatedResponse<Group>> => {
+  ): Promise<GroupsResponse> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
         searchParams.append(key, String(value));
       }
     });
-    return api.get(`/group/list?${searchParams.toString()}`);
+    return api
+      .get(`/group?${searchParams.toString()}`)
+      .then(res => ApiValidator.parse(res, GroupsResponseSchema));
   },
 
-  getById: (id: string): Promise<Group> => api.get(`/group/${id}`),
+  getById: (id: string): Promise<Group> =>
+    api.get(`/group/${id}`).then(res => ApiValidator.parse(res, GroupSchema)),
 
-  add: (data: Partial<Group>): Promise<Group> => api.post('/group', data),
+  create: (data: { name: string }): Promise<GroupCreateResponse> =>
+    api.post('/group', data).then(res => ApiValidator.parse(res, GroupCreateResponseSchema)),
 
-  edit: (id: string, data: Partial<Group>): Promise<Group> => api.put(`/group/${id}`, data),
+  update: (data: { id: number; name: string }): Promise<GroupUpdateResponse> =>
+    api.put('/group', data).then(res => ApiValidator.parse(res, GroupUpdateResponseSchema)),
 
   delete: (id: string): Promise<void> => api.delete(`/group/${id}`),
 };

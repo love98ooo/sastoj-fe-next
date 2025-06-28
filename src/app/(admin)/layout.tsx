@@ -1,6 +1,16 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { BarChart3, FileText, Users, ClipboardList, Settings, LogOut, User } from 'lucide-react';
+import {
+  BarChart3,
+  FileText,
+  Users,
+  ClipboardList,
+  Settings,
+  LogOut,
+  User,
+  UserPlus,
+  Trophy,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/shared';
 
@@ -17,6 +27,11 @@ const navigationItems = [
     icon: BarChart3,
   },
   {
+    title: '比赛管理',
+    href: '/contests',
+    icon: Trophy,
+  },
+  {
     title: '题目管理',
     href: '/problems',
     icon: FileText,
@@ -25,6 +40,11 @@ const navigationItems = [
     title: '用户管理',
     href: '/users',
     icon: Users,
+  },
+  {
+    title: '用户组管理',
+    href: '/groups',
+    icon: UserPlus,
   },
   {
     title: '提交记录',
