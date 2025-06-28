@@ -1,53 +1,32 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import useSWR from 'swr';
 import {
   SubmissionStatus,
   isStatusPending,
   mapApiStateToSubmissionStatus,
 } from '../lib/submission-status';
-
-interface SubmissionData {
-  id: string;
-  code: string;
-  language: string;
-  point: number;
-  state: number;
-  createdAt: string;
-  updatedAt: string | null;
-  totalTime: number;
-  maxMemory: number;
-  [key: string]: any;
-}
-
-interface SelfTestData {
-  isCompiled: boolean;
-  complieMsg?: string;
-  stdout?: string;
-  stderr?: string;
-  time: number;
-  memory: number;
-}
+import { Submission, SelfTestResult } from '../lib/api';
 
 interface UseSubmissionPollingOptions {
   submissionId?: string;
-  contestId?: number;
+  contestId?: string;
   enabled?: boolean;
   interval?: number;
   maxAttempts?: number;
-  onStatusChange?: (submission: SubmissionData) => void;
-  onComplete?: (submission: SubmissionData) => void;
+  onStatusChange?: (submission: Submission) => void;
+  onComplete?: (submission: Submission) => void;
 }
 
 interface UseSelfTestPollingOptions {
   selfTestId?: string;
-  contestId?: number;
+  contestId?: string;
   enabled?: boolean;
   interval?: number;
   maxAttempts?: number;
-  onStatusChange?: (result: SelfTestData) => void;
-  onComplete?: (result: SelfTestData) => void;
+  onStatusChange?: (result: SelfTestResult) => void;
+  onComplete?: (result: SelfTestResult) => void;
 }
 
 export function useSubmissionPolling({
@@ -64,9 +43,7 @@ export function useSubmissionPolling({
   const previousStatusRef = useRef<SubmissionStatus | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 获取提交详情的 API 调用
-  const fetcher = async (url: string): Promise<SubmissionData> => {
-    // 构造完整的 API URL
+  const fetcher = async (url: string): Promise<Submission> => {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://acm.sast.fun/api';
     const fullUrl = `${API_BASE_URL}${url}`;
 
@@ -77,14 +54,9 @@ export function useSubmissionPolling({
       },
     });
 
-    // if (!response.ok) {
-    //   throw new Error('Failed to fetch submission')
-    // }
-
     return response.json();
   };
 
-  // 使用 SWR 获取提交状态，但只在需要时启用
   const shouldFetch = enabled && submissionId && contestId && isPolling;
   const {
     data: submission,
@@ -95,13 +67,12 @@ export function useSubmissionPolling({
     shouldFetch ? `/user/contests/${contestId}/submissions/${submissionId}` : null,
     fetcher,
     {
-      refreshInterval: 0, // 我们手动控制轮询
+      refreshInterval: 0,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
     }
   );
 
-  // 开始轮询
   const startPolling = () => {
     if (!submissionId || isPolling) return;
 
@@ -110,7 +81,6 @@ export function useSubmissionPolling({
     poll();
   };
 
-  // 停止轮询
   const stopPolling = () => {
     setIsPolling(false);
     if (timeoutRef.current) {
@@ -119,7 +89,6 @@ export function useSubmissionPolling({
     }
   };
 
-  // 轮询逻辑
   const poll = async () => {
     if (!submissionId || attempts >= maxAttempts) {
       stopPolling();
@@ -134,36 +103,30 @@ export function useSubmissionPolling({
     }
   };
 
-  // 获取提交状态
-  const getSubmissionStatus = (submission: SubmissionData): SubmissionStatus => {
+  const getSubmissionStatus = (submission: Submission): SubmissionStatus => {
     return mapApiStateToSubmissionStatus(submission.state ?? 0);
   };
 
-  // 处理状态变化
   useEffect(() => {
     if (!submission) return;
 
     const currentStatus = getSubmissionStatus(submission);
     const previousStatus = previousStatusRef.current;
 
-    // 状态发生变化时的回调
     if (previousStatus !== null && previousStatus !== currentStatus) {
       onStatusChange?.(submission);
     }
 
-    // 如果状态不再是等待中或评测中，停止轮询
     if (!isStatusPending(currentStatus)) {
       stopPolling();
       onComplete?.(submission);
     } else if (isPolling && attempts < maxAttempts) {
-      // 继续轮询
       timeoutRef.current = setTimeout(poll, interval);
     }
 
     previousStatusRef.current = currentStatus;
   }, [submission, attempts, maxAttempts, interval, isPolling, onStatusChange, onComplete]);
 
-  // 清理定时器
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -172,7 +135,6 @@ export function useSubmissionPolling({
     };
   }, []);
 
-  // 自动开始轮询（如果提交状态需要轮询）
   useEffect(() => {
     if (submission && isStatusPending(getSubmissionStatus(submission)) && !isPolling) {
       startPolling();
@@ -192,145 +154,156 @@ export function useSubmissionPolling({
   };
 }
 
-// 自测结果轮询 Hook
 export function useSelfTestPolling({
   selfTestId,
   contestId,
   enabled = true,
-  interval = 2000, // 2秒轮询间隔
-  maxAttempts = 30, // 最大轮询次数 (60秒)
+  interval = 2000,
+  maxAttempts = 30,
   onStatusChange,
   onComplete,
 }: UseSelfTestPollingOptions) {
   const [attempts, setAttempts] = useState(0);
-  const [isPolling, setIsPolling] = useState(false);
-  const previousResultRef = useRef<SelfTestData | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldStopRef = useRef(false);
+  const previousResultRef = useRef<SelfTestResult | null>(null);
 
-  // 获取自测详情的 API 调用
-  const fetcher = async (url: string): Promise<SelfTestData> => {
-    // 构造完整的 API URL
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://acm.sast.fun/api';
-    const fullUrl = `${API_BASE_URL}${url}`;
+  // 使用SWR进行数据获取和轮询
+  const fetcher = useCallback(
+    async (url: string): Promise<SelfTestResult | null> => {
+      if (shouldStopRef.current || attempts >= maxAttempts) return null;
 
-    const response = await fetch(fullUrl, {
-      headers: {
-        Token: localStorage.getItem('token') || '',
-        'Content-Type': 'application/json',
-      },
-    });
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://acm.sast.fun/api';
+      const fullUrl = `${API_BASE_URL}${url}`;
 
-    // if (!response.ok) {
-    //   throw new Error('Failed to fetch self test result')
-    // }
+      try {
+        const response = await fetch(fullUrl, {
+          headers: {
+            Token: localStorage.getItem('token') || '',
+            'Content-Type': 'application/json',
+          },
+        });
 
-    return response.json();
-  };
+        // 根据HTTP状态码控制轮询逻辑
+        if (response.status === 200) {
+          // 200状态码 - 获取结果并停止轮询
+          shouldStopRef.current = true;
+          const data = await response.json();
+          return data;
+        } else if (response.status === 500) {
+          // 500状态码 - 继续轮询
+          setAttempts(prev => prev + 1);
+          return null;
+        } else {
+          // 其他状态码 - 停止轮询
+          shouldStopRef.current = true;
+          return null;
+        }
+      } catch {
+        // 出错时增加尝试次数但继续轮询
+        setAttempts(prev => prev + 1);
+        return null;
+      }
+    },
+    [attempts, maxAttempts]
+  );
 
-  // 使用 SWR 获取自测状态，但只在需要时启用
-  const shouldFetch = enabled && selfTestId && contestId && isPolling;
+  const shouldPoll =
+    enabled && selfTestId && contestId && attempts < maxAttempts && !shouldStopRef.current;
+
   const {
     data: result,
-    error,
-    mutate,
+    error: swrError,
     isLoading,
-  } = useSWR(shouldFetch ? `/user/contests/${contestId}/self-tests/${selfTestId}` : null, fetcher, {
-    refreshInterval: 0, // 我们手动控制轮询
+    mutate,
+  } = useSWR(shouldPoll ? `/user/contests/${contestId}/self-tests/${selfTestId}` : null, fetcher, {
+    refreshInterval: shouldPoll ? interval : 0,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    dedupingInterval: 0, // 禁用重复请求的去重
+    onSuccess: data => {
+      if (!data) return;
+
+      // 处理状态变化
+      if (
+        previousResultRef.current &&
+        JSON.stringify(previousResultRef.current) !== JSON.stringify(data)
+      ) {
+        onStatusChange?.(data);
+      }
+
+      // 如果结果已完成，调用完成回调
+      previousResultRef.current = data;
+      onComplete?.(data);
+    },
   });
 
-  // 开始轮询
-  const startPolling = () => {
-    if (!selfTestId || isPolling) return;
+  // 手动开始轮询
+  const startPolling = useCallback(() => {
+    if (!selfTestId || !contestId) return;
 
-    setIsPolling(true);
+    shouldStopRef.current = false;
     setAttempts(0);
-    poll();
-  };
+    mutate();
+  }, [selfTestId, contestId, mutate]);
 
-  // 停止轮询
-  const stopPolling = () => {
-    setIsPolling(false);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  // 手动停止轮询
+  const stopPolling = useCallback(() => {
+    shouldStopRef.current = true;
+  }, []);
+
+  // 手动刷新
+  const refresh = useCallback(() => {
+    if (selfTestId && contestId) {
+      mutate();
     }
-  };
+  }, [selfTestId, contestId, mutate]);
 
-  // 轮询逻辑
-  const poll = async () => {
-    if (!selfTestId || attempts >= maxAttempts) {
-      stopPolling();
-      return;
-    }
-
-    try {
-      await mutate(); // 触发数据更新
-      setAttempts(prev => prev + 1);
-    } catch {
-      setAttempts(prev => prev + 1);
-    }
-  };
-
-  // 判断自测是否完成
-  const isSelfTestComplete = (result: SelfTestData): boolean => {
-    return result.isCompiled !== undefined;
-  };
-
-  // 处理结果变化
-  useEffect(() => {
-    if (!result) return;
-
-    // 如果之前没有结果，现在有了，触发状态变更回调
-    if (
-      previousResultRef.current === null ||
-      JSON.stringify(previousResultRef.current) !== JSON.stringify(result)
-    ) {
-      onStatusChange?.(result);
-    }
-
-    // 如果自测已完成，停止轮询
-    if (isSelfTestComplete(result)) {
-      stopPolling();
-      onComplete?.(result);
-    } else if (isPolling && attempts < maxAttempts) {
-      // 继续轮询
-      timeoutRef.current = setTimeout(poll, interval);
-    }
-
-    previousResultRef.current = result;
-  }, [result, attempts, maxAttempts, interval, isPolling, onStatusChange, onComplete]);
-
-  // 清理定时器
+  // 自动清理
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      shouldStopRef.current = true;
     };
   }, []);
 
+  // 当ID变化时重置
+  useEffect(() => {
+    if (selfTestId && contestId && enabled) {
+      shouldStopRef.current = false;
+      setAttempts(0);
+    } else {
+      shouldStopRef.current = true;
+    }
+  }, [selfTestId, contestId, enabled]);
+
+  const isPolling = shouldPoll && !shouldStopRef.current;
+
   return {
     result,
-    error,
+    error: swrError,
     isLoading,
     isPolling,
     attempts,
     maxAttempts,
     startPolling,
     stopPolling,
-    refresh: mutate,
+    refresh,
   };
 }
 
-// 简化版本的 hook，用于单次提交状态检查
-export function useSubmissionStatus(submissionId?: string, contestId?: number) {
-  return useSubmissionPolling({
+export function useSubmissionStatus(submissionId?: string, contestId?: string) {
+  const { submission } = useSubmissionPolling({
     submissionId,
     contestId,
-    enabled: !!submissionId && !!contestId,
-    interval: 2000,
-    maxAttempts: 150,
+    enabled: Boolean(submissionId && contestId),
   });
+
+  const statusCode = submission?.state ?? 0;
+  const status = mapApiStateToSubmissionStatus(statusCode);
+
+  return {
+    submission,
+    statusCode,
+    status,
+    isPending: isStatusPending(status),
+  };
 }

@@ -75,7 +75,7 @@ export default function ContestPage() {
     }
   };
 
-  const handleEnterContest = async (contestId: number) => {
+  const handleEnterContest = async (contestId: string) => {
     try {
       await joinContest({ contestId, isJoin: true });
 

@@ -1,0 +1,220 @@
+import * as z from 'zod/v4';
+
+// 通用错误响应包装器 - 用于HTTP状态码非200的情况
+export const ApiErrorResponseSchema = z.object({
+  code: z.number(),
+  message: z.string(),
+  metadata: z.record(z.string(), z.string()).optional(),
+  reason: z.string().optional(),
+});
+
+// 分页响应结构
+export const PaginatedResponseSchema = <T extends z.ZodType>(itemSchema: T) =>
+  z.object({
+    items: z.array(itemSchema),
+    total: z.number(),
+    current: z.number(),
+    size: z.number(),
+  });
+
+// 问题类型定义
+export const ProblemTypeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string(),
+  judge: z.string(),
+});
+
+export const ProblemTypesResponseSchema = z.object({
+  types: z.array(ProblemTypeSchema),
+});
+
+// 基础类型定义
+export const UserSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  email: z.email(),
+  name: z.string(),
+  role: z.string(),
+  group_ids: z.array(z.number()),
+  group_names: z.array(z.string()),
+  created_at: z.string(),
+  updated_at: z.string(),
+  banned: z.boolean(),
+});
+
+export const GroupSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  member_count: z.number(),
+});
+
+export const ContestSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  state: z.number().optional(),
+  status: z.number().optional(),
+  type: z.number(),
+  startTime: z.string(),
+  endTime: z.string(),
+  language: z.string(),
+  extraTime: z.number(),
+  createTime: z.string().optional(),
+});
+
+export const ProblemSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  title: z.string(),
+  content: z.string(),
+  score: z.number(),
+  index: z.number().optional(),
+  metadata: z.record(z.string(), z.string()),
+  // 可选字段
+  difficulty: z.string().optional(),
+  time_limit: z.number().optional(),
+  memory_limit: z.number().optional(),
+  examples: z
+    .array(
+      z.object({
+        input: z.string(),
+        output: z.string(),
+        explanation: z.string().optional(),
+      })
+    )
+    .optional(),
+  constraints: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  accepted_count: z.number().optional(),
+  submission_count: z.number().optional(),
+});
+
+export const ContestProblemSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  title: z.string(),
+  score: z.number(),
+  index: z.number(),
+  metadata: z.record(z.string(), z.string()),
+});
+
+export const SubmissionSchema = z.object({
+  id: z.string(),
+  code: z.string().optional(),
+  language: z.string(),
+  point: z.number(),
+  state: z.number().optional(),
+  status: z.number().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string().nullable().optional(),
+  totalTime: z.number().optional(),
+  maxMemory: z.number().optional(),
+});
+
+export const TestCaseSchema = z.object({
+  index: z.number(),
+  point: z.number(),
+  state: z.number(),
+  time: z.string(),
+  memory: z.string(),
+});
+
+export const SubmissionDetailSchema = SubmissionSchema.extend({
+  testCases: z.array(TestCaseSchema),
+});
+
+export const SelfTestResultSchema = z.object({
+  complieMsg: z.string(),
+  isCompiled: z.boolean(),
+  memory: z.number(),
+  stderr: z.string(),
+  stdout: z.string(),
+  time: z.number(),
+});
+
+// 登录请求和响应
+export const LoginRequestSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
+export const LoginResponseSchema = z.object({
+  token: z.string(),
+});
+
+// 排名相关
+export const RankingProblemSchema = z.object({
+  problemId: z.string(),
+  state: z.number(),
+  point: z.number(),
+  triedTimes: z.number(),
+  scoreAchievedTime: z.string(),
+});
+
+export const RankingUserSchema = z.object({
+  problems: z.array(RankingProblemSchema),
+  username: z.string(),
+  totalScore: z.number(),
+  rank: z.number(),
+  penalty: z.number(),
+});
+
+export const ContestRankingResponseSchema = z.object({
+  users: z.array(RankingUserSchema),
+});
+
+// API 响应类型
+export const ContestsResponseSchema = z.object({
+  contests: z.array(ContestSchema),
+});
+
+export const ContestProblemsResponseSchema = z.object({
+  problems: z.array(ContestProblemSchema),
+});
+
+export const ContestSubmissionsResponseSchema = z.object({
+  submissions: z.array(SubmissionSchema),
+});
+
+export const JoinContestResponseSchema = z.object({
+  isJoin: z.boolean(),
+});
+
+export const TestResponseSchema = z.object({
+  uuid: z.string(),
+});
+
+export const SubmissionResponseSchema = z.object({
+  uuid: z.string(),
+});
+
+export const SelfTestResponseSchema = z.object({
+  uuid: z.string(),
+});
+
+// 从Schema中导出类型
+export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
+export type PaginatedResponse<T> = z.infer<
+  ReturnType<typeof PaginatedResponseSchema<z.ZodType<T>>>
+>;
+export type ProblemType = z.infer<typeof ProblemTypeSchema>;
+export type User = z.infer<typeof UserSchema>;
+export type Group = z.infer<typeof GroupSchema>;
+export type Contest = z.infer<typeof ContestSchema>;
+export type Problem = z.infer<typeof ProblemSchema>;
+export type ContestProblem = z.infer<typeof ContestProblemSchema>;
+export type Submission = z.infer<typeof SubmissionSchema>;
+export type TestCase = z.infer<typeof TestCaseSchema>;
+export type SubmissionDetail = z.infer<typeof SubmissionDetailSchema>;
+export type SelfTestResult = z.infer<typeof SelfTestResultSchema>;
+export type LoginRequest = z.infer<typeof LoginRequestSchema>;
+export type LoginResponse = z.infer<typeof LoginResponseSchema>;
+export type RankingProblem = z.infer<typeof RankingProblemSchema>;
+export type RankingUser = z.infer<typeof RankingUserSchema>;
+export type ContestRankingResponse = z.infer<typeof ContestRankingResponseSchema>;
+export type SelfTestResponse = z.infer<typeof SelfTestResponseSchema>;

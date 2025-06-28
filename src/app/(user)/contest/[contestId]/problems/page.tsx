@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 export default function ContestProblemsPage() {
   const params = useParams();
-  const contestId = parseInt(params.contestId as string);
+  const contestId = params.contestId as string;
 
   const {
     data: problems,

@@ -35,7 +35,7 @@ interface RankingUser {
 
 export default function ContestRankingPage() {
   const params = useParams();
-  const contestId = parseInt(params.contestId as string);
+  const contestId = params.contestId as string;
   const pagination = {
     current: 1,
     size: 10,

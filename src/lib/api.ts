@@ -1,4 +1,32 @@
 // Next.js API Client using native fetch and best practices
+import * as z from 'zod/v4';
+import {
+  ApiErrorResponseSchema,
+  LoginRequest,
+  LoginResponse,
+  LoginResponseSchema,
+  PaginatedResponse,
+  Contest,
+  ContestSchema,
+  ContestsResponseSchema,
+  ProblemSchema,
+  ContestProblemsResponseSchema,
+  ContestSubmissionsResponseSchema,
+  JoinContestResponseSchema,
+  TestResponseSchema,
+  SubmissionResponseSchema,
+  SelfTestResponseSchema,
+  ContestRankingResponseSchema,
+  ContestRankingResponse,
+  Problem,
+  Submission,
+  TestCase,
+  SelfTestResult,
+  SelfTestResponse,
+  User,
+  Group,
+} from './schemas';
+import { ApiValidator } from './api-validator';
 
 // API Configuration
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://acm.sast.fun/api';
@@ -13,78 +41,6 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
   }
-}
-
-// Generic API response wrapper
-export interface ApiResponse<T = unknown> {
-  code: number;
-  message: string;
-  data?: T;
-  metadata?: Record<string, unknown>;
-}
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  current: number;
-  size: number;
-}
-
-// Response interfaces for API endpoints
-export interface ContestsResponse {
-  contests: Contest[];
-}
-
-export interface UserContestsResponse {
-  contests: Contest[];
-}
-
-export interface ContestProblemsResponse {
-  problems: ContestProblem[];
-}
-
-export interface ContestSubmissionsResponse {
-  submissions: Submission[];
-}
-
-export interface ProblemsResponse {
-  problems: Problem[];
-}
-
-export interface JoinContestResponse {
-  isJoin: boolean;
-}
-
-export interface TestResponse {
-  uuid: string;
-}
-
-export interface SubmissionResponse {
-  uuid: string;
-}
-
-export interface SelfTestResponse {
-  uuid: string;
-}
-
-export interface RankingUser {
-  problems: RankingProblem[];
-  username: string;
-  totalScore: number;
-  rank: number;
-  penalty: number;
-}
-
-export interface RankingProblem {
-  problemId: string;
-  state: number;
-  point: number;
-  triedTimes: number;
-  scoreAchievedTime: string;
-}
-
-export interface ContestRankingResponse {
-  users: RankingUser[];
 }
 
 // Enhanced fetch with error handling and auth
@@ -102,43 +58,38 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     ...options,
   };
 
-  try {
-    const response = await fetch(url, config);
+  const response = await fetch(url, config);
 
-    // Handle different response types
-    const contentType = response.headers.get('content-type');
-    let data: unknown;
+  // Handle different response types
+  const contentType = response.headers.get('content-type');
+  let data: unknown;
 
-    if (contentType?.includes('application/json')) {
-      data = await response.json();
-    } else {
-      data = await response.text();
-    }
-
-    if (!response.ok) {
-      // Handle API errors
-      if (response.status === 401) {
-        // Unauthorized - remove token and redirect
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-        }
-      }
-
-      throw new ApiError(
-        (data as { message?: string })?.message || `HTTP Error: ${response.status}`,
-        response.status,
-        (data as { code?: string })?.code
-      );
-    }
-
-    return data as T;
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    throw new ApiError(error instanceof Error ? error.message : 'Network error', 0);
+  if (contentType?.includes('application/json')) {
+    data = await response.json();
+  } else {
+    data = await response.text();
   }
+
+  if (!response.ok) {
+    // Handle API errors
+    if (response.status === 401) {
+      // Unauthorized - remove token and redirect
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
+
+    if (response.status === 404) {
+      throw new ApiError('Not Found', response.status);
+    }
+
+    // 尝试解析错误响应
+    const errorData = ApiErrorResponseSchema.parse(data);
+    throw new ApiError(errorData.message, response.status, errorData.code.toString());
+  }
+
+  return data as T;
 }
 
 // HTTP method helpers
@@ -164,100 +115,10 @@ export const api = {
     apiFetch<T>(endpoint, { ...options, method: 'DELETE' }),
 };
 
-// Type definitions
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-}
-
-export interface Problem {
-  id: number;
-  type: string;
-  title: string;
-  content: string;
-  score: number;
-  index: number;
-  metadata: Record<string, unknown>;
-  // Additional fields that might be in the content
-  difficulty?: string;
-  time_limit?: number;
-  memory_limit?: number;
-  examples?: Array<{
-    input: string;
-    output: string;
-    explanation?: string;
-  }>;
-  constraints?: string[];
-  tags?: string[];
-  accepted_count?: number;
-  submission_count?: number;
-}
-
-export interface Contest {
-  id: number;
-  title: string;
-  description: string;
-  state?: number;
-  status?: number;
-  type: number;
-  startTime: string;
-  endTime: string;
-  language: string;
-  extraTime: number;
-  createTime?: string;
-}
-
-export interface ContestProblem {
-  id: number;
-  type: string;
-  title: string;
-  score: number;
-  index: number;
-  metadata: Record<string, unknown>;
-}
-
-export interface Submission {
-  id: string;
-  code?: string;
-  language: string;
-  point: number;
-  state?: number; // 提交状态（详情接口）
-  status?: number; // 提交状态（列表接口）
-  createdAt: string;
-  updatedAt?: string | null;
-  totalTime?: number;
-  maxMemory?: number;
-}
-
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  name: string;
-  role: string;
-  group_ids: number[];
-  group_names: string[];
-  created_at: string;
-  updated_at: string;
-  banned: boolean;
-}
-
-export interface Group {
-  id: number;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-  member_count: number;
-}
-
 // API service functions
 export const authApi = {
-  login: (data: LoginRequest): Promise<LoginResponse> => api.post('/login', data),
+  login: (data: LoginRequest): Promise<LoginResponse> =>
+    api.post('/login', data).then(res => ApiValidator.parse(res, LoginResponseSchema)),
 
   logout: (): Promise<void> => api.post('/logout'),
 
@@ -271,7 +132,7 @@ export const problemApi = {
     params: {
       size?: number;
       current?: number;
-      contest_id?: number;
+      contest_id?: string;
       difficulty?: string;
       problem_type?: string;
       tags?: string[];
@@ -290,13 +151,13 @@ export const problemApi = {
     return api.get(`/problem/list?${searchParams.toString()}`);
   },
 
-  getById: (id: number): Promise<Problem> => api.get(`/problem/${id}`),
+  getById: (id: string): Promise<Problem> => api.get(`/problem/${id}`),
 
   add: (data: Partial<Problem>): Promise<Problem> => api.post('/problem', data),
 
-  edit: (id: number, data: Partial<Problem>): Promise<Problem> => api.put(`/problem/${id}`, data),
+  edit: (id: string, data: Partial<Problem>): Promise<Problem> => api.put(`/problem/${id}`, data),
 
-  delete: (id: number): Promise<void> => api.delete(`/problem/${id}`),
+  delete: (id: string): Promise<void> => api.delete(`/problem/${id}`),
 
   getTypes: (): Promise<string[]> => api.get('/problem/types'),
 };
@@ -318,20 +179,20 @@ export const contestApi = {
     return api.get(`/contest/list?${searchParams.toString()}`);
   },
 
-  getById: (id: number): Promise<Contest> => api.get(`/contest/${id}`),
+  getById: (id: string): Promise<Contest> => api.get(`/contest/${id}`),
 
   add: (data: Partial<Contest>): Promise<Contest> => api.post('/contest', data),
 
-  edit: (id: number, data: Partial<Contest>): Promise<Contest> => api.put(`/contest/${id}`, data),
+  edit: (id: string, data: Partial<Contest>): Promise<Contest> => api.put(`/contest/${id}`, data),
 
-  delete: (id: number): Promise<void> => api.delete(`/contest/${id}`),
+  delete: (id: string): Promise<void> => api.delete(`/contest/${id}`),
 
-  join: (id: number): Promise<void> => api.post(`/contest/${id}/join`),
+  join: (id: string): Promise<void> => api.post(`/contest/${id}/join`),
 
-  getProblems: (id: number): Promise<Problem[]> => api.get(`/contest/${id}/problems`),
+  getProblems: (id: string): Promise<Problem[]> => api.get(`/contest/${id}/problems`),
 
   getRanking: (
-    id: number,
+    id: string,
     params?: { size?: number; current?: number }
   ): Promise<ContestRankingResponse> => {
     const searchParams = new URLSearchParams();
@@ -361,10 +222,10 @@ export const submissionApi = {
     input: string;
   }): Promise<SelfTestResponse> => api.post('/selftest', data),
 
-  getById: (id: number): Promise<Submission> => api.get(`/submission/${id}`),
+  getById: (id: string): Promise<Submission> => api.get(`/submission/${id}`),
 
   getByProblemId: (
-    problemId: number,
+    problemId: string,
     params?: { size?: number; current?: number }
   ): Promise<PaginatedResponse<Submission>> => {
     const searchParams = new URLSearchParams();
@@ -393,32 +254,17 @@ export const submissionApi = {
     return api.get(`/submission/history?${searchParams.toString()}`);
   },
 
-  getSelfTestDetail: (
-    contestId: number,
-    selfTestId: string
-  ): Promise<{
-    isCompiled: boolean;
-    complieMsg: string;
-    stdout: string;
-    stderr: string;
-    time: number;
-    memory: number;
-  }> => api.get(`/user/contests/${contestId}/self-tests/${selfTestId}`),
+  getSelfTestDetail: (contestId: string, selfTestId: string): Promise<SelfTestResult> =>
+    api.get(`/user/contests/${contestId}/self-tests/${selfTestId}`),
 
-  getSubmissionDetail: (contestId: number, submissionId: string): Promise<Submission> =>
+  getSubmissionDetail: (contestId: string, submissionId: string): Promise<Submission> =>
     api.get(`/user/contests/${contestId}/submissions/${submissionId}`),
 
   getSubmissionCases: (
-    contestId: number,
+    contestId: string,
     submissionId: string
   ): Promise<{
-    cases: Array<{
-      index: number;
-      point: number;
-      state: number;
-      time: string;
-      memory: string;
-    }>;
+    cases: TestCase[];
   }> => api.get(`/user/contests/${contestId}/submissions/${submissionId}/cases`),
 };
 
@@ -442,7 +288,7 @@ export const userApi = {
 
   add: (data: Partial<User>): Promise<User> => api.post('/user', data),
 
-  edit: (id: number, data: Partial<User>): Promise<User> => api.put(`/user/${id}`, data),
+  edit: (id: string, data: Partial<User>): Promise<User> => api.put(`/user/${id}`, data),
 
   addBatch: (data: { users: Partial<User>[] }): Promise<User[]> => api.post('/user/batch', data),
 };
@@ -463,13 +309,13 @@ export const groupApi = {
     return api.get(`/group/list?${searchParams.toString()}`);
   },
 
-  getById: (id: number): Promise<Group> => api.get(`/group/${id}`),
+  getById: (id: string): Promise<Group> => api.get(`/group/${id}`),
 
   add: (data: Partial<Group>): Promise<Group> => api.post('/group', data),
 
-  edit: (id: number, data: Partial<Group>): Promise<Group> => api.put(`/group/${id}`, data),
+  edit: (id: string, data: Partial<Group>): Promise<Group> => api.put(`/group/${id}`, data),
 
-  delete: (id: number): Promise<void> => api.delete(`/group/${id}`),
+  delete: (id: string): Promise<void> => api.delete(`/group/${id}`),
 };
 
 // Contest API functions
@@ -480,122 +326,121 @@ export const contestService = {
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = await apiFetch<ContestsResponse>(`/contest?${searchParams.toString()}`);
-    return response.contests;
+    const response = await apiFetch<unknown>(`/contest?${searchParams.toString()}`);
+    return ApiValidator.parse(response, ContestsResponseSchema).contests;
   },
 
   // Get user's contests
   getUserContests: async () => {
-    const response = await apiFetch<UserContestsResponse>(`/user/contests`);
-    return response.contests;
+    const response = await apiFetch<unknown>(`/user/contests`);
+    return ApiValidator.parse(response, ContestsResponseSchema).contests;
   },
 
   // Get contest by ID (use user endpoint instead of admin endpoint)
-  getContest: async (contestId: number) => {
-    const response = await apiFetch<Contest>(`/user/contests/${contestId}/detail`);
-    return response;
+  getContest: async (contestId: string) => {
+    const response = await apiFetch<unknown>(`/user/contests/${contestId}/detail`);
+    return ApiValidator.parse(response, ContestSchema);
   },
 
   // Join or exit contest
-  joinContest: async (contestId: number, isJoin: boolean) => {
-    const response = await apiFetch<JoinContestResponse>(`/user/contests/${contestId}`, {
+  joinContest: async (contestId: string, isJoin: boolean) => {
+    const response = await apiFetch<unknown>(`/user/contests/${contestId}`, {
       method: 'POST',
       body: JSON.stringify({ is_join: isJoin }),
     });
-    return response.isJoin;
+    return ApiValidator.parse(response, JoinContestResponseSchema).isJoin;
   },
 
   // Get problems in a contest
-  getContestProblems: async (contestId: number) => {
+  getContestProblems: async (contestId: string) => {
     // Only use user endpoint - users must join contest to access problems
-    const response = await apiFetch<ContestProblemsResponse>(
-      `/user/contests/${contestId}/problems`
-    );
-    return response.problems;
+    const response = await apiFetch<unknown>(`/user/contests/${contestId}/problems`);
+    return ApiValidator.parse(response, ContestProblemsResponseSchema).problems;
   },
 
   // Get specific problem in a contest (only for joined contests)
-  getContestProblem: async (contestId: number, problemId: number) => {
+  getContestProblem: async (contestId: string, problemId: string) => {
     // Only use user endpoint - users must join contest to access problems
-    const response = await apiFetch<Problem>(`/user/contests/${contestId}/problems/${problemId}`);
-    return response;
+    const response = await apiFetch<unknown>(`/user/contests/${contestId}/problems/${problemId}`);
+    return ApiValidator.parse(response, ProblemSchema);
   },
 
   // Submit solution to contest problem
   submitContestProblem: async (
-    contestId: number,
-    problemId: number,
+    contestId: string,
+    problemId: string,
     data: {
       code: string;
       language: string;
     }
-  ): Promise<SubmissionResponse> => {
-    const response = await apiFetch<SubmissionResponse>(
+  ) => {
+    const response = await apiFetch<unknown>(
       `/user/contests/${contestId}/problems/${problemId}/submission`,
       {
         method: 'POST',
         body: JSON.stringify(data),
       }
     );
-    return response;
+    return ApiValidator.parse(response, SubmissionResponseSchema);
   },
 
   // Self test contest problem
   testContestProblem: async (
-    contestId: number,
-    problemId: number,
+    contestId: string,
+    problemId: string,
     data: {
       code: string;
       language: string;
       input: string;
     }
   ) => {
-    const response = await apiFetch<TestResponse>(
+    const response = await apiFetch<unknown>(
       `/user/contests/${contestId}/problems/${problemId}/test`,
       {
         method: 'POST',
         body: JSON.stringify(data),
       }
     );
-    return response.uuid;
+    const validatedResponse = ApiValidator.parse(response, TestResponseSchema);
+    return validatedResponse.uuid;
   },
 
   // Get contest submissions
   getContestSubmissions: async (
-    contestId: number,
-    problemId: number,
+    contestId: string,
+    problemId: string,
     params: { size?: number; current?: number } = {}
   ) => {
     const searchParams = new URLSearchParams();
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = await apiFetch<ContestSubmissionsResponse>(
+    const response = await apiFetch<unknown>(
       `/user/contests/${contestId}/problems/${problemId}/submissions?${searchParams.toString()}`
     );
-    return response.submissions;
+    return ApiValidator.parse(response, ContestSubmissionsResponseSchema).submissions;
   },
 
   // Get contest ranking
   getContestRanking: async (
-    contestId: number,
+    contestId: string,
     params: { size?: number; current?: number } = {}
   ) => {
     const searchParams = new URLSearchParams();
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = await apiFetch<ContestRankingResponse>(
+    const response = await apiFetch<unknown>(
       `/user/contests/${contestId}/ranking?${searchParams.toString()}`
     );
-    return response;
+    return ApiValidator.parse(response, ContestRankingResponseSchema);
   },
 };
 
 // Update problem service to be contest-aware
 export const problemService = {
   // Get problems by contest (this is now the primary way to get problems)
-  getProblems: async (contestId?: number, params: { size?: number; current?: number } = {}) => {
+  getProblems: async (contestId?: string, params: { size?: number; current?: number } = {}) => {
     if (contestId) {
       return contestService.getContestProblems(contestId);
     }
@@ -605,25 +450,29 @@ export const problemService = {
     if (params.size) searchParams.set('size', params.size.toString());
     if (params.current) searchParams.set('current', params.current.toString());
 
-    const response = await apiFetch<ProblemsResponse>(`/problem/list?${searchParams.toString()}`);
-    return response.problems;
+    const response = await apiFetch<unknown>(`/problem/list?${searchParams.toString()}`);
+    // 创建一个临时schema来解析包含problems数组的响应
+    const ProblemsResponseSchema = z.object({
+      problems: z.array(ProblemSchema),
+    });
+    return ApiValidator.parse(response, ProblemsResponseSchema).problems;
   },
 
   // Get problem (contest-aware)
-  getProblem: async (problemId: number, contestId?: number) => {
+  getProblem: async (problemId: string, contestId?: string) => {
     if (contestId) {
       return contestService.getContestProblem(contestId, problemId);
     }
 
     // Fallback to admin problem endpoint
-    const response = await apiFetch<Problem>(`/problem/${problemId}`);
-    return response;
+    const response = await apiFetch<unknown>(`/problem/${problemId}`);
+    return ApiValidator.parse(response, ProblemSchema);
   },
 
   // Submit code (contest-aware)
   submitCode: async (data: {
-    problem_id: number;
-    contest_id?: number;
+    problem_id: string;
+    contest_id?: string;
     code: string;
     language: string;
   }) => {
@@ -635,17 +484,17 @@ export const problemService = {
     }
 
     // Fallback to general submission endpoint
-    const response = await apiFetch<SubmissionResponse>(`/submission`, {
+    const response = await apiFetch<unknown>(`/submission`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return response;
+    return ApiValidator.parse(response, SubmissionResponseSchema);
   },
 
   // Self test (contest-aware)
   selfTest: async (data: {
-    problem_id: number;
-    contest_id?: number;
+    problem_id: string;
+    contest_id?: string;
     code: string;
     language: string;
     input: string;
@@ -659,40 +508,13 @@ export const problemService = {
     }
 
     // Fallback to general self-test endpoint
-    const response = await apiFetch<TestResponse>(`/self-test`, {
+    const response = await apiFetch<unknown>(`/self-test`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return response.uuid;
+    return ApiValidator.parse(response, SelfTestResponseSchema).uuid;
   },
 };
 
-// Problem detail page related interfaces
-export interface SubmissionDetail {
-  code?: string;
-  language: string;
-  point: number;
-  state?: number;
-  createdAt: string;
-  updatedAt?: string | null;
-  totalTime?: number;
-  maxMemory?: number;
-  testCases: TestCase[];
-}
-
-export interface TestCase {
-  index: number;
-  point: number;
-  state: number; // 1: 通过, 其他: 未通过
-  time: string; // 执行时间 (纳秒)
-  memory: string; // 内存使用 (字节)
-}
-
-export interface SelfTestResult {
-  complieMsg: string;
-  isCompiled: boolean;
-  memory: number;
-  stderr: string;
-  stdout: string;
-  time: number;
-}
+// Re-export schemas and types for convenience
+export * from './schemas';

@@ -23,6 +23,14 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+    --sidebar: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -46,6 +54,14 @@
     --border: 226 27% 14%; /* #414868 - borders */
     --input: 226 27% 14%; /* #414868 - input background */
     --ring: 267 84% 81%; /* #bb9af7 - focus ring */
+    --sidebar: 226 27% 9%; /* #24283b - sidebar background */
+    --sidebar-foreground: 230 100% 95%; /* #c0caf5 - sidebar text */
+    --sidebar-primary: 267 84% 81%; /* #bb9af7 - sidebar primary */
+    --sidebar-primary-foreground: 225 27% 7%; /* #1a1b26 - text on sidebar primary */
+    --sidebar-accent: 226 27% 14%; /* #414868 - sidebar accent */
+    --sidebar-accent-foreground: 230 100% 95%; /* #c0caf5 - text on sidebar accent */
+    --sidebar-border: 226 27% 14%; /* #414868 - sidebar border */
+    --sidebar-ring: 267 84% 81%; /* #bb9af7 - sidebar focus ring */
   }
 }
 
@@ -69,6 +85,14 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
   --radius: var(--radius);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

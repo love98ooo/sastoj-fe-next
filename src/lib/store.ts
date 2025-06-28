@@ -82,10 +82,10 @@ export const useAppStore = create<AppState>()(
 
 // 比赛信息存储
 interface ContestState {
-  currentContests: Record<number, Contest>; // 以contestId为key的比赛信息
+  currentContests: Record<string, Contest>; // 以contestId为key的比赛信息
   setContest: (contest: Contest) => void; // 设置比赛信息
-  getContest: (contestId: number) => Contest | undefined; // 获取比赛信息
-  removeContest: (contestId: number) => void; // 移除比赛信息
+  getContest: (contestId: string) => Contest | undefined; // 获取比赛信息
+  removeContest: (contestId: string) => void; // 移除比赛信息
 }
 
 export const useContestStore = create<ContestState>()(
@@ -103,11 +103,11 @@ export const useContestStore = create<ContestState>()(
         }));
       },
 
-      getContest: (contestId: number) => {
+      getContest: (contestId: string) => {
         return get().currentContests[contestId];
       },
 
-      removeContest: (contestId: number) => {
+      removeContest: (contestId: string) => {
         set(state => {
           const newContests = { ...state.currentContests };
           delete newContests[contestId];
@@ -129,13 +129,13 @@ interface UserCodeState {
   // 以contestId-problemId-language为key的代码
   codes: Record<string, string>;
   // 获取代码
-  getCode: (contestId: number, problemId: number, language: string) => string;
+  getCode: (contestId: string, problemId: string, language: string) => string;
   // 保存代码
-  saveCode: (contestId: number, problemId: number, language: string, code: string) => void;
+  saveCode: (contestId: string, problemId: string, language: string, code: string) => void;
   // 获取用户上次使用的语言
-  getLastLanguage: (contestId: number, problemId: number) => string | undefined;
+  getLastLanguage: (contestId: string, problemId: string) => string | undefined;
   // 保存用户上次使用的语言
-  saveLastLanguage: (contestId: number, problemId: number, language: string) => void;
+  saveLastLanguage: (contestId: string, problemId: string, language: string) => void;
   // 用户最后使用的语言记录
   lastLanguages: Record<string, string>;
 }
@@ -146,12 +146,12 @@ export const useUserCodeStore = create<UserCodeState>()(
       codes: {},
       lastLanguages: {},
 
-      getCode: (contestId: number, problemId: number, language: string) => {
+      getCode: (contestId: string, problemId: string, language: string) => {
         const key = `${contestId}-${problemId}-${language}`;
         return get().codes[key] || '';
       },
 
-      saveCode: (contestId: number, problemId: number, language: string, code: string) => {
+      saveCode: (contestId: string, problemId: string, language: string, code: string) => {
         const key = `${contestId}-${problemId}-${language}`;
         set(state => ({
           codes: {
@@ -161,12 +161,12 @@ export const useUserCodeStore = create<UserCodeState>()(
         }));
       },
 
-      getLastLanguage: (contestId: number, problemId: number) => {
+      getLastLanguage: (contestId: string, problemId: string) => {
         const key = `${contestId}-${problemId}`;
         return get().lastLanguages[key];
       },
 
-      saveLastLanguage: (contestId: number, problemId: number, language: string) => {
+      saveLastLanguage: (contestId: string, problemId: string, language: string) => {
         const key = `${contestId}-${problemId}`;
         set(state => ({
           lastLanguages: {

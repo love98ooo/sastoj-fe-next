@@ -36,7 +36,7 @@ export function TestCasesPanel({
       </div>
 
       <TabsContent value="test-cases" className="flex-1 overflow-y-auto mt-0">
-        <CodeEditor language="cpp" value={customTestInput} onChange={setCustomTestInput} />
+        <CodeEditor language="text" value={customTestInput} onChange={setCustomTestInput} />
       </TabsContent>
 
       <TabsContent value="self-test-result" className="flex-1 overflow-y-auto">

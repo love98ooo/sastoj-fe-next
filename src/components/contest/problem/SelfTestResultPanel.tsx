@@ -51,12 +51,8 @@ export function SelfTestResultPanel({
             }`}
           >
             <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${success ? 'bg-green-500' : 'bg-red-500'}`}
-              />
-              <span className="text-sm font-medium">
-                {success ? '运行成功' : '运行失败'}
-              </span>
+              <div className={`w-3 h-3 rounded-full ${success ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-sm font-medium">{success ? '运行成功' : '运行失败'}</span>
             </div>
 
             {/* 执行时间和内存占用 - 紧凑显示 */}

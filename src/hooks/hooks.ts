@@ -4,10 +4,11 @@ import {
   contestService,
   problemService,
   submissionApi,
-  userApi,
   groupApi,
   authApi,
   Submission,
+  SelfTestResult,
+  LoginRequest,
 } from '../lib/api';
 import type { SWRConfiguration } from 'swr';
 import { useSubmissionPolling, useSelfTestPolling } from './use-submission-polling';
@@ -22,19 +23,19 @@ export function useUserContests() {
   return useSWR('/user/contests', () => contestService.getUserContests());
 }
 
-export function useContest(contestId: number) {
+export function useContest(contestId: string) {
   return useSWR(contestId ? `/contest/${contestId}` : null, () =>
     contestService.getContest(contestId)
   );
 }
 
-export function useContestProblems(contestId: number) {
+export function useContestProblems(contestId: string) {
   return useSWR(contestId ? `/user/contests/${contestId}/problems` : null, () =>
     contestService.getContestProblems(contestId)
   );
 }
 
-export function useContestRanking(contestId: number, params?: { size?: number; current?: number }) {
+export function useContestRanking(contestId: string, params?: { size?: number; current?: number }) {
   return useSWR(contestId ? `/contests/${contestId}/ranking` : null, () =>
     contestService.getContestRanking(contestId, params)
   );
@@ -43,7 +44,7 @@ export function useContestRanking(contestId: number, params?: { size?: number; c
 export function useJoinContest() {
   return useSWRMutation(
     '/user/contests/join',
-    async (_key: string, { arg: _arg }: { arg: { contestId: number; isJoin: boolean } }) => {
+    async (_key: string, { arg: _arg }: { arg: { contestId: string; isJoin: boolean } }) => {
       // Currently returning mock data - replace with actual API call
       return {
         code: 200,
@@ -59,7 +60,7 @@ export function useJoinContest() {
 
 // Problem hooks (contest-aware)
 export function useProblems(
-  contestId?: number,
+  contestId?: string,
   params?: {
     size?: number;
     current?: number;
@@ -73,7 +74,7 @@ export function useProblems(
   );
 }
 
-export function useProblem(problemId: number, contestId?: number) {
+export function useProblem(problemId: string, contestId?: string) {
   return useSWR(
     problemId && contestId
       ? `/contests/${contestId}/problems/${problemId}`
@@ -91,12 +92,12 @@ export function useSubmissions(
 ) {
   return useSWR(
     params ? ['submissions', params] : 'submissions',
-    () => submissionApi.getByProblemId(0, params), // This might need to be adjusted based on your API
+    () => submissionApi.getByProblemId('0', params), // 使用字符串"0"代替数字0
     options
   );
 }
 
-export function useSubmission(id: number | null, options?: SWRConfiguration) {
+export function useSubmission(id: string | null, options?: SWRConfiguration) {
   return useSWR(
     id ? ['submission', id] : null,
     () => (id ? submissionApi.getById(id) : null),
@@ -105,7 +106,7 @@ export function useSubmission(id: number | null, options?: SWRConfiguration) {
 }
 
 export function useProblemSubmissions(
-  problemId: number,
+  problemId: string,
   params?: { size?: number; current?: number }
 ) {
   return useSWR(problemId ? `/problems/${problemId}/submissions` : null, () =>
@@ -114,8 +115,8 @@ export function useProblemSubmissions(
 }
 
 export function useContestSubmissions(
-  contestId: number,
-  problemId: number,
+  contestId: string,
+  problemId: string,
   params?: { size?: number; current?: number }
 ) {
   return useSWR(
@@ -133,22 +134,9 @@ export function useSubmissionHistory(
 ) {
   return useSWR(
     params ? ['submission-history', params] : 'submission-history',
-    () => submissionApi.getByProblemId(0, params), // Adjust based on your API
+    () => submissionApi.getByProblemId('0', params), // Adjust based on your API
     options
   );
-}
-
-// User hooks
-export function useUsers(
-  params?: {
-    size?: number;
-    current?: number;
-    role?: string;
-    group_id?: number;
-  },
-  options?: SWRConfiguration
-) {
-  return useSWR(params ? ['users', params] : 'users', () => userApi.getList(params || {}), options);
 }
 
 // Group hooks
@@ -166,7 +154,7 @@ export function useGroups(
   );
 }
 
-export function useGroup(id: number | null, options?: SWRConfiguration) {
+export function useGroup(id: string | null, options?: SWRConfiguration) {
   return useSWR(id ? ['group', id] : null, () => (id ? groupApi.getById(id) : null), options);
 }
 
@@ -180,8 +168,8 @@ export function useSubmitCode() {
         arg,
       }: {
         arg: {
-          problem_id: number;
-          contest_id?: number;
+          problem_id: string;
+          contest_id?: string;
           code: string;
           language: string;
         };
@@ -201,8 +189,8 @@ export function useSelfTest() {
         arg,
       }: {
         arg: {
-          problem_id: number;
-          contest_id?: number;
+          problem_id: string;
+          contest_id?: string;
           code: string;
           language: string;
           input: string;
@@ -216,12 +204,9 @@ export function useSelfTest() {
 
 // Auth hooks
 export function useLogin() {
-  return useSWRMutation(
-    '/login',
-    async (_key: string, { arg }: { arg: { username: string; password: string } }) => {
-      return authApi.login(arg);
-    }
-  );
+  return useSWRMutation('/login', async (_key: string, { arg }: { arg: LoginRequest }) => {
+    return authApi.login(arg);
+  });
 }
 
 export function useLogout() {
@@ -233,7 +218,7 @@ export function useLogout() {
 // 使用提交轮询的统一 hook
 export function useSubmissionWithPolling(
   submissionId?: string,
-  contestId?: number,
+  contestId?: string,
   options?: {
     interval?: number;
     maxAttempts?: number;
@@ -280,54 +265,27 @@ export function useSubmissionWithPolling(
   };
 }
 
-// Define SelfTestData interface to match the polling hook
-interface SelfTestData {
-  isCompiled: boolean;
-  complieMsg?: string;
-  stdout?: string;
-  stderr?: string;
-  time: number;
-  memory: number;
-}
-
 // 使用自测轮询的统一 hook
 export function useSelfTestWithPolling(
   selfTestId?: string,
-  contestId?: number,
+  contestId?: string,
   options?: {
     interval?: number;
     maxAttempts?: number;
-    onStatusChange?: (result: SelfTestData) => void;
-    onComplete?: (result: SelfTestData) => void;
+    onStatusChange?: (result: SelfTestResult) => void;
+    onComplete?: (result: SelfTestResult) => void;
   }
 ) {
-  const {
-    result,
-    error,
-    isLoading,
-    isPolling,
-    startPolling: startPollingOriginal,
-    stopPolling,
-    refresh,
-  } = useSelfTestPolling({
-    selfTestId,
-    contestId,
-    enabled: !!selfTestId && !!contestId,
-    interval: options?.interval || 2000,
-    maxAttempts: options?.maxAttempts || 30,
-    onStatusChange: options?.onStatusChange,
-    onComplete: options?.onComplete,
-  });
-
-  // 使用useCallback确保startPolling函数引用稳定
-  const startPolling = useCallback(() => {
-    if (selfTestId && contestId) {
-      // 检查是否已经在轮询以避免重复启动
-      if (!isPolling) {
-        startPollingOriginal();
-      }
-    }
-  }, [selfTestId, contestId, startPollingOriginal, isPolling]);
+  const { result, error, isLoading, isPolling, startPolling, stopPolling, refresh } =
+    useSelfTestPolling({
+      selfTestId,
+      contestId,
+      enabled: !!selfTestId && !!contestId,
+      interval: options?.interval,
+      maxAttempts: options?.maxAttempts,
+      onStatusChange: options?.onStatusChange,
+      onComplete: options?.onComplete,
+    });
 
   return {
     result,

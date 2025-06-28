@@ -37,13 +37,15 @@ import {
 } from '@/components/contest/problem';
 import { useRouter } from 'next/navigation';
 
+type SubmissionDetailWithId = SubmissionDetail & { id: string };
+
 export default function ContestProblemDetailPage({ params }: ContestProblemPageProps) {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('C++');
   const [mounted, setMounted] = useState(false);
   const [lastSubmissionId, setLastSubmissionId] = useState<string | null>(null);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
-  const [submissionDetail, setSubmissionDetail] = useState<SubmissionDetail | null>(null);
+  const [submissionDetail, setSubmissionDetail] = useState<SubmissionDetailWithId | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [customTestInput, setCustomTestInput] = useState('');
@@ -51,19 +53,17 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
   const [isSelfTesting, setIsSelfTesting] = useState(false);
   const [selfTestUuid, setSelfTestUuid] = useState<string | null>(null);
 
-  // Tab 状态控制
   const [activeTestTab, setActiveTestTab] = useState('test-cases');
 
-  // 限流保护状态
   const [isSubmitCooldown, setIsSubmitCooldown] = useState(false);
   const [isSelfTestCooldown, setIsSelfTestCooldown] = useState(false);
 
   const { toast } = useToast();
 
-  // 使用 React.use() 解包 params Promise
   const resolvedParams = use(params);
-  const contestId = parseInt(resolvedParams.contestId);
-  const problemId = parseInt(resolvedParams.problemId);
+
+  const contestId = resolvedParams.contestId;
+  const problemId = resolvedParams.problemId;
 
   const router = useRouter();
 
@@ -98,7 +98,6 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
       // 刷新提交历史
       mutateSubmissions();
 
-      // 显示提交完成的 toast
       const status = getSubmissionStatus(submission);
       if (status === SubmissionStatus.Accepted) {
         toast({
@@ -117,21 +116,24 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
   });
 
   // 使用自测轮询 hook
-  const { isPolling: isSelfTestPolling, startPolling: startSelfTestPolling } =
-    useSelfTestWithPolling(selfTestUuid || undefined, contestId, {
-      onComplete: result => {
-        setIsSelfTesting(false);
-        // 转换 SelfTestData 到 SelfTestResult
-        setSelfTestResult({
-          complieMsg: result.complieMsg || '',
-          isCompiled: result.isCompiled,
-          memory: result.memory,
-          stderr: result.stderr || '',
-          stdout: result.stdout || '',
-          time: result.time,
-        });
-      },
-    });
+  const {
+    result: selfTestPollResult,
+    isPolling: isSelfTestPolling,
+    startPolling: startSelfTestPolling,
+  } = useSelfTestWithPolling(selfTestUuid || undefined, contestId, {
+    onComplete: result => {
+      setIsSelfTesting(false);
+      setSelfTestResult(result);
+    },
+  });
+
+  // 监听自测结果
+  useEffect(() => {
+    if (selfTestPollResult) {
+      setIsSelfTesting(false);
+      setSelfTestResult(selfTestPollResult);
+    }
+  }, [selfTestPollResult]);
 
   // 使用用户代码存储
   const { getCode, saveCode, getLastLanguage, saveLastLanguage } = useUserCodeStore();
@@ -217,7 +219,9 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
         submissionApi.getSubmissionCases(contestId, submission.id).catch(() => ({ cases: [] })), // 如果获取失败，返回空数组
       ]);
 
-      setSubmissionDetail({
+      // 构造符合 SubmissionDetail 类型的对象
+      const submissionDetailData: SubmissionDetailWithId = {
+        id: submission.id, // 使用原始 submission 的 id
         code: detail.code,
         language: detail.language,
         point: detail.point,
@@ -227,7 +231,9 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
         totalTime: detail.totalTime,
         maxMemory: detail.maxMemory,
         testCases: casesResponse.cases || [],
-      });
+      };
+
+      setSubmissionDetail(submissionDetailData);
       setIsLoadingDetail(false);
     } catch {
       setIsLoadingDetail(false);
@@ -302,12 +308,10 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
     if (selfTestUuid) {
       startSelfTestPolling();
     }
-  }, [selfTestUuid]);
+  }, [selfTestUuid, startSelfTestPolling]);
 
-  // 键盘导航支持
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // 只有在没有焦点在输入框时才处理键盘事件
       const activeElement = document.activeElement;
       const isInputFocused =
         activeElement &&
@@ -332,48 +336,34 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [contestProblems, problemId]);
 
-  // 题目导航相关功能
   const getSortedProblems = () => {
     if (!contestProblems) return [];
     return [...contestProblems].sort((a, b) => a.index - b.index);
   };
 
   const getCurrentProblemIndex = () => {
-    const sortedProblems = getSortedProblems();
-    return sortedProblems.findIndex(p => p.id === problemId);
+    const problems = getSortedProblems();
+    return problems.findIndex(p => p.id === problemId);
   };
 
   const getNavigationInfo = () => {
-    const sortedProblems = getSortedProblems();
+    const problems = getSortedProblems();
     const currentIndex = getCurrentProblemIndex();
 
     return {
+      prevProblem: currentIndex > 0 ? problems[currentIndex - 1] : null,
+      nextProblem: currentIndex < problems.length - 1 ? problems[currentIndex + 1] : null,
+      currentProblem: currentIndex >= 0 ? problems[currentIndex] : null,
+      totalProblems: problems.length,
       currentIndex,
-      total: sortedProblems.length,
-      prevProblem: currentIndex > 0 ? sortedProblems[currentIndex - 1] : null,
-      nextProblem:
-        currentIndex >= 0 && currentIndex < sortedProblems.length - 1
-          ? sortedProblems[currentIndex + 1]
-          : null,
-      currentProblemLabel: currentIndex >= 0 ? String.fromCharCode(65 + currentIndex) : '',
-      displayIndex: currentIndex >= 0 ? currentIndex + 1 : 0,
     };
   };
 
-  const navigateToProblem = (targetProblemId: number) => {
+  const navigateToProblem = (targetProblemId: string) => {
     router.push(`/contest/${contestId}/problem/${targetProblemId}`);
   };
 
   const handleSubmit = async () => {
-    if (!code.trim()) {
-      toast({
-        variant: 'warning',
-        title: '提交失败',
-        description: '请先编写代码再提交！',
-      });
-      return;
-    }
-
     if (isSubmitCooldown) {
       toast({
         variant: 'warning',
@@ -383,11 +373,10 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
       return;
     }
 
-    // 启动提交冷却期
     setIsSubmitCooldown(true);
     setTimeout(() => {
       setIsSubmitCooldown(false);
-    }, 3000);
+    }, 5000);
 
     try {
       const result = await submitCode({
@@ -581,7 +570,7 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
                   setCustomTestInput={setCustomTestInput}
                   selfTestResult={selfTestResult}
                   isSelfTesting={isSelfTesting}
-                  isSelfTestPolling={isSelfTestPolling}
+                  isSelfTestPolling={Boolean(isSelfTestPolling)}
                 />
               </Panel>
             </PanelGroup>
