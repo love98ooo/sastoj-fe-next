@@ -34,9 +34,10 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Logo } from '@/components/shared/logo';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { contestApi } from '@/lib/api';
 import { useEffect, useState } from 'react';
+import { useAuthGuard } from '@/lib/auth';
 
 // 定义菜单项类型
 interface MenuItem {
@@ -81,7 +82,22 @@ const navigationItems: MenuItem[] = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [contestName, setContestName] = useState<string>('');
+  const [mounted, setMounted] = useState(false);
+  const { isAuthenticated, user, logout } = useAuthGuard();
+
+  // Set mounted to true on client side to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Redirect to login if not authenticated (only after mount)
+  useEffect(() => {
+    if (mounted && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [mounted, isAuthenticated, router]);
 
   // 获取比赛名称
   useEffect(() => {
@@ -99,6 +115,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         });
     }
   }, [pathname]);
+
+  // Show loading state during hydration
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (only after mount)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2 text-foreground">Authentication Required</h2>
+          <p className="text-muted-foreground mb-4">Please login to access this page.</p>
+          <Button onClick={() => router.push('/login')}>Go to Login</Button>
+        </div>
+      </div>
+    );
+  }
 
   // 生成面包屑导航
   const renderBreadcrumb = () => {
@@ -191,6 +232,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <SidebarProvider className="min-h-screen w-full">
       <Sidebar className="h-screen" variant="inset">
@@ -239,7 +284,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <p className="text-xs text-muted-foreground">admin@sastoj.com</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>

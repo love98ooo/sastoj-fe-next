@@ -14,7 +14,7 @@ type ContestLayoutProps = {
 export default function ContestLayout({ children }: ContestLayoutProps) {
   const params = useParams();
   const contestId = params.contestId as string;
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
