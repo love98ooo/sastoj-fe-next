@@ -1,20 +1,14 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CodeEditor } from '@/components/shared/code-editor';
 import { SelfTestResultPanel } from './SelfTestResultPanel';
+import { SelfTestResult } from '@/lib/api';
 
 interface TestCasesPanelProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   customTestInput: string;
   setCustomTestInput: (input: string) => void;
-  selfTestResult: {
-    success: boolean;
-    output: string;
-    executionTime: string;
-    memory: string;
-    verdict?: string;
-    stderr?: string;
-  } | null;
+  selfTestResult: SelfTestResult | null;
   isSelfTesting: boolean;
   isSelfTestPolling: boolean;
 }

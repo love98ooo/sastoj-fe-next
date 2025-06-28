@@ -121,38 +121,15 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
     useSelfTestWithPolling(selfTestUuid || undefined, contestId, {
       onComplete: result => {
         setIsSelfTesting(false);
-
-        if (!result.isCompiled) {
-          // 编译失败
-          setSelfTestResult({
-            success: false,
-            output: result.complieMsg || '编译失败',
-            executionTime: `${Math.round(result.time / 1000000)}ms`,
-            memory: `${Math.round(result.memory / 1024)}KB`,
-            verdict: 'Compile Error',
-            stderr: result.stderr,
-          });
-        } else if (result.stderr && result.stderr.trim()) {
-          // 运行时错误
-          setSelfTestResult({
-            success: false,
-            output: result.stderr,
-            executionTime: `${Math.round(result.time / 1000000)}ms`,
-            memory: `${Math.round(result.memory / 1024)}KB`,
-            verdict: 'Runtime Error',
-            stderr: result.stderr,
-          });
-        } else {
-          // 执行成功
-          setSelfTestResult({
-            success: true,
-            output: result.stdout || '执行成功',
-            executionTime: `${Math.round(result.time / 1000000)}ms`,
-            memory: `${Math.round(result.memory / 1024)}KB`,
-            verdict: 'Accepted',
-            stderr: result.stderr,
-          });
-        }
+        // 转换 SelfTestData 到 SelfTestResult
+        setSelfTestResult({
+          complieMsg: result.complieMsg || '',
+          isCompiled: result.isCompiled,
+          memory: result.memory,
+          stderr: result.stderr || '',
+          stdout: result.stdout || '',
+          time: result.time,
+        });
       },
     });
 
@@ -208,17 +185,21 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
     } catch (error) {
       if (error instanceof ApiError && error.message.includes('rate Limit Exceeded')) {
         setSelfTestResult({
-          success: false,
-          output: '操作过于频繁，请稍后再试！',
-          executionTime: '0ms',
-          memory: '0KB',
+          complieMsg: '操作过于频繁，请稍后再试！',
+          isCompiled: false,
+          memory: 0,
+          stderr: '',
+          stdout: '',
+          time: 0,
         });
       } else {
         setSelfTestResult({
-          success: false,
-          output: '自测提交失败: ' + (error as Error).message,
-          executionTime: '0ms',
-          memory: '0KB',
+          complieMsg: '自测提交失败: ' + (error as Error).message,
+          isCompiled: false,
+          memory: 0,
+          stderr: '',
+          stdout: '',
+          time: 0,
         });
       }
       setIsSelfTesting(false);

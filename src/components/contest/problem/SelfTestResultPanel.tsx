@@ -1,11 +1,5 @@
-interface SelfTestResult {
-  success: boolean;
-  output: string;
-  executionTime: string;
-  memory: string;
-  verdict?: string;
-  stderr?: string;
-}
+import { SelfTestResult } from '@/lib/api';
+import { formatFileSize } from '@/lib/utils';
 
 interface SelfTestResultPanelProps {
   result: SelfTestResult | null;
@@ -13,11 +7,42 @@ interface SelfTestResultPanelProps {
   customTestInput: string;
 }
 
+// Utility functions to derive display properties from API data
+function getDisplayOutput(result: SelfTestResult): string {
+  if (!result.isCompiled) {
+    return result.complieMsg || '编译失败';
+  }
+  if (result.stderr && result.stderr.trim()) {
+    return result.stderr;
+  }
+  return result.stdout || '执行成功';
+}
+
+function getSuccess(result: SelfTestResult): boolean {
+  return result.isCompiled && (!result.stderr || !result.stderr.trim());
+}
+
+function getVerdict(result: SelfTestResult): string {
+  if (!result.isCompiled) {
+    return 'Compile Error';
+  }
+  if (result.stderr && result.stderr.trim()) {
+    return 'Runtime Error';
+  }
+  return 'Accepted';
+}
+
 export function SelfTestResultPanel({
   result,
   isLoading,
   customTestInput,
 }: SelfTestResultPanelProps) {
+  const success = result ? getSuccess(result) : false;
+  const output = result ? getDisplayOutput(result) : '';
+  const executionTime = result ? `${Math.round(result.time / 1000000)}ms` : '';
+  const memory = result ? formatFileSize(result.memory) : '';
+  const stderr = result?.stderr;
+
   return (
     <div className="flex-1 overflow-y-auto px-4 py-3">
       {isLoading ? (
@@ -30,17 +55,17 @@ export function SelfTestResultPanel({
           {/* 状态和性能指标在顶部 */}
           <div
             className={`flex items-center justify-between p-3 rounded-lg border ${
-              result.success
+              success
                 ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900/60'
                 : 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900/60'
             }`}
           >
             <div className="flex items-center gap-2">
               <div
-                className={`w-3 h-3 rounded-full ${result.success ? 'bg-green-500' : 'bg-red-500'}`}
+                className={`w-3 h-3 rounded-full ${success ? 'bg-green-500' : 'bg-red-500'}`}
               />
               <span className="text-sm font-medium">
-                {result.success ? '运行成功' : '运行失败'}
+                {success ? '运行成功' : '运行失败'}
               </span>
             </div>
 
@@ -48,11 +73,11 @@ export function SelfTestResultPanel({
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">时间:</span>
-                <span className="font-mono font-medium">{result.executionTime}</span>
+                <span className="font-mono font-medium">{executionTime}</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">内存:</span>
-                <span className="font-mono font-medium">{result.memory}</span>
+                <span className="font-mono font-medium">{memory}</span>
               </div>
             </div>
           </div>
@@ -72,17 +97,17 @@ export function SelfTestResultPanel({
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-2 block">输出</label>
                 <pre className="text-xs bg-muted p-3 rounded border font-mono whitespace-pre-wrap">
-                  {result.output}
+                  {output}
                 </pre>
               </div>
 
-              {result.stderr && (
+              {stderr && (
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-2 block">
                     错误信息
                   </label>
                   <pre className="text-xs bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded font-mono whitespace-pre-wrap text-red-800 dark:text-red-300">
-                    {result.stderr}
+                    {stderr}
                   </pre>
                 </div>
               )}
