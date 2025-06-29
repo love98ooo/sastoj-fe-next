@@ -320,18 +320,18 @@ export function ContestsClient() {
                         <div className="flex items-center space-x-2">
                           <Button variant="outline" size="sm" asChild>
                             <Link href={`/contests/${contest.id}`}>
-                              <BookOpen className="h-4 w-4 mr-1" /> 详情
+                              <BookOpen className="h-4 w-4" />
                             </Link>
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => handleEdit(contest)}>
-                            <Pencil className="h-4 w-4 mr-1" /> 编辑
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => openDeleteDialog(contest)}
                           >
-                            <Trash className="h-4 w-4 mr-1" /> 删除
+                            <Trash className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>

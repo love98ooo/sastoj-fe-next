@@ -29,12 +29,12 @@ export function CodeEditorPanel({
 }: CodeEditorPanelProps) {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center px-4 py-2 border-b bg-background flex-shrink-0">
+      <div className="flex justify-between items-center px-4 py-2 border-b bg-card flex-shrink-0">
         <Select value={language} onValueChange={onLanguageChange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] bg-card border-border">
             <SelectValue placeholder="选择语言" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-card border-border">
             {SUPPORTED_LANGUAGES.map(lang => (
               <SelectItem key={lang.value} value={lang.value}>
                 {lang.label}
@@ -49,7 +49,7 @@ export function CodeEditorPanel({
       </div>
 
       {isSubmissionPolling && latestSubmission && (
-        <div className="border-t p-4 flex-shrink-0">
+        <div className="border-t p-4 flex-shrink-0 bg-card">
           <PendingSubmissionIndicator
             status={getSubmissionStatus(latestSubmission)}
             message={`正在评测提交 #${latestSubmission.id}...`}

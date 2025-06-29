@@ -73,7 +73,7 @@ export function SelfTestResultPanel({
             {/* 左侧 - 输入 */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-2 block">输入</label>
-              <pre className="text-xs bg-muted p-3 rounded border font-mono whitespace-pre-wrap h-[calc(100%-24px)]">
+              <pre className="text-xs bg-card p-3 rounded border border-border font-mono whitespace-pre-wrap h-[calc(100%-24px)]">
                 {customTestInput}
               </pre>
             </div>
@@ -82,7 +82,7 @@ export function SelfTestResultPanel({
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-2 block">输出</label>
-                <pre className="text-xs bg-muted p-3 rounded border font-mono whitespace-pre-wrap">
+                <pre className="text-xs bg-card p-3 rounded border border-border font-mono whitespace-pre-wrap">
                   {output}
                 </pre>
               </div>

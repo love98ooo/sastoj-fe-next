@@ -25,6 +25,8 @@ export class ApiValidator {
       return result.data;
     }
 
+    // eslint-disable-next-line no-console
+    console.debug(result);
     const formattedErrors = z.treeifyError(result.error);
     throw new Error(`Schema validation failed: ${JSON.stringify(formattedErrors)}`);
   }

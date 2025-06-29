@@ -299,6 +299,53 @@ const tokyoNightTheme = {
   },
 };
 
+// Tokyo Night Light theme definition for Monaco Editor
+const tokyoNightLightTheme = {
+  base: 'vs' as const,
+  inherit: true,
+  rules: [
+    { token: 'comment', foreground: '787c99', fontStyle: 'italic' },
+    { token: 'keyword', foreground: '9854f1' },
+    { token: 'operator', foreground: '007197' },
+    { token: 'namespace', foreground: '007197' },
+    { token: 'type', foreground: '0da0db' },
+    { token: 'struct', foreground: '0da0db' },
+    { token: 'class', foreground: '0da0db' },
+    { token: 'interface', foreground: '0da0db' },
+    { token: 'enum', foreground: '0da0db' },
+    { token: 'typeParameter', foreground: '0da0db' },
+    { token: 'function', foreground: '2e7de9' },
+    { token: 'method', foreground: '2e7de9' },
+    { token: 'macro', foreground: '2e7de9' },
+    { token: 'variable', foreground: '4c505e' },
+    { token: 'parameter', foreground: '8c6c3e' },
+    { token: 'property', foreground: '8c6c3e' },
+    { token: 'label', foreground: '9854f1' },
+    { token: 'constant', foreground: 'b15c00' },
+    { token: 'number', foreground: 'b15c00' },
+    { token: 'string', foreground: '587539' },
+    { token: 'character', foreground: '587539' },
+    { token: 'regexp', foreground: 'f52a65' },
+    { token: 'delimiter', foreground: '4c505e' },
+    { token: 'tag', foreground: 'f52a65' },
+    { token: 'attribute.name', foreground: '8c6c3e' },
+    { token: 'attribute.value', foreground: '587539' },
+  ],
+  colors: {
+    'editor.background': '#d5d6db',
+    'editor.foreground': '#4c505e',
+    'editor.lineHighlightBackground': '#e1e2e7',
+    'editor.selectionBackground': '#b8c4e9',
+    'editor.selectionHighlightBackground': '#b8c4e9',
+    'editorCursor.foreground': '#4c505e',
+    'editorWhitespace.foreground': '#787c99',
+    'editorIndentGuide.background': '#c9cbd6',
+    'editorIndentGuide.activeBackground': '#787c99',
+    'editorLineNumber.foreground': '#787c99',
+    'editorLineNumber.activeForeground': '#4c505e',
+  },
+};
+
 export function CodeEditor({
   value,
   onChange,
@@ -313,11 +360,12 @@ export function CodeEditor({
     setMounted(true);
   }, []);
 
-  // Define Tokyo Night theme when Monaco loads
+  // Define Tokyo Night themes when Monaco loads
   useEffect(() => {
     if (mounted) {
       loader.init().then(monaco => {
         monaco.editor.defineTheme('tokyo-night', tokyoNightTheme);
+        monaco.editor.defineTheme('tokyo-night-light', tokyoNightLightTheme);
       });
     }
   }, [mounted]);
@@ -329,7 +377,7 @@ export function CodeEditor({
 
   const getEditorTheme = () => {
     const currentTheme = theme === 'system' ? resolvedTheme : theme;
-    return currentTheme === 'dark' ? 'tokyo-night' : 'vs';
+    return currentTheme === 'dark' ? 'tokyo-night' : 'tokyo-night-light';
   };
 
   if (!mounted) {

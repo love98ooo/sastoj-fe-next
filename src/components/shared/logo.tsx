@@ -31,6 +31,14 @@ export function Logo({ width = 48, height = 48, alt = 'SASTOJ Logo', className }
   const logoSrc = currentTheme === 'dark' ? '/sastoj-dark.svg' : '/sastoj.svg';
 
   return (
-    <Image src={logoSrc} alt={alt} width={width} height={height} className={className} priority />
+    <Image
+      src={logoSrc}
+      alt={alt}
+      width={width}
+      height={height}
+      style={{ height: 'auto' }}
+      className={className}
+      priority
+    />
   );
 }

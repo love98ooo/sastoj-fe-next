@@ -23,9 +23,13 @@ export function TestCasesPanel({
   isSelfTestPolling,
 }: TestCasesPanelProps) {
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className="w-full h-full flex flex-col gap-0"
+    >
       <div className="px-4 pt-3 pb-2 border-b flex-shrink-0">
-        <TabsList className="grid w-full grid-cols-2 bg-muted">
+        <TabsList className="grid w-full grid-cols-2 bg-card">
           <TabsTrigger value="test-cases" className="text-sm">
             测试用例
           </TabsTrigger>

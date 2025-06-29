@@ -263,7 +263,7 @@ export function ContestFormDialog({
           {/* 额外时间 */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="extraTime" className="text-right">
-              额外时间（分钟）
+              额外时间
             </Label>
             <Input
               id="extraTime"
@@ -272,7 +272,7 @@ export function ContestFormDialog({
               value={formData.extraTime?.toString() || '0'}
               onChange={e => handleChange('extraTime', parseInt(e.target.value) || 0)}
               className="col-span-3"
-              placeholder="比赛结束后的额外时间（分钟）"
+              placeholder="解释型语言补偿时间倍数"
             />
           </div>
         </div>

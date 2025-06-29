@@ -1,36 +1,44 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    /* Tokyo Night Light color palette */
+    --background: 220 27% 98%; /* #d5d6db - main background */
+    --foreground: 235 25% 35%; /* #4c505e - main text */
+    --card: 220 30% 96%; /* #e1e2e7 - card background */
+    --card-foreground: 235 25% 35%; /* #4c505e - card text */
+    --popover: 220 30% 96%; /* #e1e2e7 - popover background */
+    --popover-foreground: 235 25% 35%; /* #4c505e - popover text */
+    --primary: 230 55% 60%; /* #7aa2f7 - blue accent */
+    --primary-foreground: 220 27% 98%; /* #d5d6db - text on primary */
+    --secondary: 220 16% 90%; /* #dfe0e5 - secondary background */
+    --secondary-foreground: 235 25% 35%; /* #4c505e - secondary text */
+    --muted: 220 16% 90%; /* #dfe0e5 - muted background */
+    --muted-foreground: 235 12% 50%; /* #787c99 - muted text */
+    --accent: 0 60% 70%; /* #f7768e - red accent */
+    --accent-foreground: 220 27% 98%; /* #d5d6db - text on accent */
+    --destructive: 0 60% 65%; /* #e06c75 - red/destructive */
+    --destructive-foreground: 220 27% 98%; /* #d5d6db - text on destructive */
+    --border: 220 13% 91%; /* #d4d6e4 - borders */
+    --input: 220 13% 91%; /* #d4d6e4 - input background */
+    --ring: 230 55% 60%; /* #7aa2f7 - focus ring */
     --radius: 0.5rem;
-    --sidebar: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar: 220 30% 96%; /* #e1e2e7 - sidebar background */
+    --sidebar-foreground: 235 25% 35%; /* #4c505e - sidebar text */
+    --sidebar-primary: 235 25% 20%; /* #2a2e3a - sidebar primary */
+    --sidebar-primary-foreground: 220 27% 98%; /* #d5d6db - text on sidebar primary */
+    --sidebar-accent: 220 16% 90%; /* #dfe0e5 - sidebar accent */
+    --sidebar-accent-foreground: 235 25% 35%; /* #4c505e - text on sidebar accent */
+    --sidebar-border: 220 13% 91%; /* #d4d6e4 - sidebar border */
+    --sidebar-ring: 230 55% 60%; /* #7aa2f7 - sidebar focus ring */
+
+    /* shadcn/ui extras */
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
   }
 
   .dark {
@@ -100,7 +108,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
@@ -206,5 +214,39 @@
   /* Inline math should be slightly smaller */
   .problem-content .katex:not(.katex-display .katex) {
     font-size: 1em;
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Custom text size between xs and sm */
+  .text-xs\+ {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.25rem; /* 20px */
+  }
+
+  /* 底部渐变遮罩效果 */
+  .mask-bottom {
+    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
   }
 }

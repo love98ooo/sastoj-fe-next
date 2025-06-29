@@ -481,7 +481,7 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
           <Button
             variant="outline"
             size="sm"
-            className="px-6 py-1.5 text-sm font-medium"
+            className="px-6 py-1.5 text-sm font-medium border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
             onClick={handleSelfTest}
             disabled={
               isSelfTesting ||
@@ -501,7 +501,7 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
             onClick={handleSubmit}
             disabled={isSubmitting || isSubmitCooldown || !code.trim()}
             size="sm"
-            className="px-6 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium"
+            className="px-6 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium"
           >
             {isSubmitting ? '提交中...' : isSubmitCooldown ? '请稍等...' : '提交'}
           </Button>
@@ -524,7 +524,7 @@ export default function ContestProblemDetailPage({ params }: ContestProblemPageP
           <Panel defaultSize={50} minSize={30} maxSize={70} className="flex flex-col">
             <div className="px-6 py-3 border-b flex-shrink-0">
               <Tabs defaultValue="description" className="w-full h-full">
-                <TabsList className="grid w-full grid-cols-2 bg-muted">
+                <TabsList className="grid w-full grid-cols-2 bg-card">
                   <TabsTrigger value="description" className="text-sm">
                     题目描述
                   </TabsTrigger>

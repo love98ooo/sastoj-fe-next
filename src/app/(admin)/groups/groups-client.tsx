@@ -83,28 +83,28 @@ function GroupsTable({ onRefresh }: GroupsTableProps) {
         prefix: 'admin',
         name: name.substring(6),
         type: '管理员组',
-        variant: 'admin' as const,
+        variant: 'destructive' as const,
       };
     } else if (name.startsWith('public_')) {
       return {
         prefix: 'public_',
         name: name.substring(7),
         type: '公共用户组',
-        variant: 'info' as const,
+        variant: 'default' as const,
       };
     } else if (name.startsWith('user_')) {
       return {
         prefix: 'user_',
         name: name.substring(5),
         type: '普通用户组',
-        variant: 'success' as const,
+        variant: 'secondary' as const,
       };
     }
     return {
       prefix: '',
       name,
       type: '未分类',
-      variant: 'secondary' as const,
+      variant: 'outline' as const,
     };
   };
 

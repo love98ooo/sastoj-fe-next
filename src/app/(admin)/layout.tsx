@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import {
   Users,
-  ClipboardList,
-  Settings,
   LogOut,
   User,
   UserPlus,
@@ -68,16 +66,16 @@ const navigationItems: MenuItem[] = [
     href: '/groups',
     icon: UserPlus,
   },
-  {
-    title: '提交记录',
-    href: '/submissions',
-    icon: ClipboardList,
-  },
-  {
-    title: '系统设置',
-    href: '/settings',
-    icon: Settings,
-  },
+  // {
+  //   title: '提交记录',
+  //   href: '/submissions',
+  //   icon: ClipboardList,
+  // },
+  // {
+  //   title: '系统设置',
+  //   href: '/settings',
+  //   icon: Settings,
+  // },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -85,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [contestName, setContestName] = useState<string>('');
   const [mounted, setMounted] = useState(false);
-  const { isAuthenticated, user, logout } = useAuthGuard();
+  const { isAuthenticated, logout } = useAuthGuard();
 
   // Set mounted to true on client side to avoid hydration mismatch
   useEffect(() => {
@@ -253,7 +251,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           {/* 导航菜单 */}
           <SidebarGroup>
-            <h3 className="mb-2 mt-4 px-6 text-sm font-medium text-muted-foreground">平台</h3>
             <SidebarMenu className="px-3">
               {navigationItems.map(item => {
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);

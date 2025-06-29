@@ -43,7 +43,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
   };
 
   return (
-    <div className="h-[calc(100vh-140px)] overflow-y-auto space-y-6 pr-2">
+    <div className="h-[calc(100vh-140px)] overflow-y-auto space-y-6 pr-2 problem-content">
       {/* Problem Description */}
       <div className="prose prose-sm max-w-none">
         <MarkdownRenderer content={content.description || rawContent || '暂无题目描述。'} />
@@ -53,7 +53,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
       {content.input && (
         <div>
           <h4 className="font-semibold mb-3 text-foreground text-base">输入格式</h4>
-          <div className="bg-muted p-4 rounded-lg text-sm border">
+          <div className="bg-card p-4 rounded-lg text-sm border border-border">
             <MarkdownRenderer content={content.input} />
           </div>
         </div>
@@ -63,7 +63,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
       {content.output && (
         <div>
           <h4 className="font-semibold mb-3 text-foreground text-base">输出格式</h4>
-          <div className="bg-muted p-4 rounded-lg text-sm border">
+          <div className="bg-card p-4 rounded-lg text-sm border border-border">
             <MarkdownRenderer content={content.output} />
           </div>
         </div>
@@ -76,7 +76,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
             <div key={index}>
               <h4 className="font-semibold mb-2 text-foreground text-base">样例 {index + 1}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-muted p-4 rounded-lg border">
+                <div className="bg-card p-4 rounded-lg border border-border">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-muted-foreground">输入</span>
                     <Button
@@ -90,7 +90,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
                   </div>
                   <pre className="text-sm text-foreground whitespace-pre-wrap">{example.input}</pre>
                 </div>
-                <div className="bg-muted p-4 rounded-lg border">
+                <div className="bg-card p-4 rounded-lg border border-border">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-muted-foreground">输出</span>
                     <Button
@@ -116,7 +116,7 @@ export function ProblemDescription({ content, rawContent }: ProblemDescriptionPr
       {content.constraints && content.constraints.length > 0 && (
         <div>
           <h4 className="font-semibold mb-3 text-foreground text-base">数据范围与提示</h4>
-          <div className="bg-muted p-4 rounded-lg border text-sm">
+          <div className="bg-card p-4 rounded-lg border border-border text-sm">
             <ul className="list-disc pl-5 space-y-1">
               {content.constraints.map((constraint, index) => (
                 <li key={index} className="text-muted-foreground">

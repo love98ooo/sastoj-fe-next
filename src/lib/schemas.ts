@@ -112,7 +112,7 @@ export const ContestSchema = z.object({
 
 export const ProblemSchema = z.object({
   id: z.string(),
-  typeId: z.string(),
+  typeId: z.string().optional(),
   title: z.string(),
   content: z.string(),
   score: z.number().optional(),
@@ -120,9 +120,9 @@ export const ProblemSchema = z.object({
   contestId: z.string().optional(),
   caseVersion: z.number().optional(),
   index: z.number().optional(),
-  config: z.string(),
-  ownerId: z.number(),
-  visibility: z.string(),
+  config: z.string().optional(),
+  ownerId: z.number().optional(),
+  visibility: z.string().optional(),
   metadata: z.record(z.string(), z.any()),
   // 可选字段
   difficulty: z.string().optional(),

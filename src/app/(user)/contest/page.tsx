@@ -2,13 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar, Trophy, UserPlus, TimerOff } from 'lucide-react';
 import { useUserContests, useJoinContest } from '@/hooks';
 import { useRouter } from 'next/navigation';
 import { getContestTypeName } from '@/lib/contest-types';
 import { useContestStore } from '@/lib/store';
+import { Separator } from '@/components/ui/separator';
 
 export default function ContestPage() {
   const [mounted, setMounted] = useState(false);
@@ -113,60 +121,76 @@ export default function ContestPage() {
         <p className="text-gray-600 text-lg">选择一个比赛并开始答题</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {contests.map(contest => {
           const { status, color } = getContestStatus(contest);
 
           return (
             <Card
               key={contest.id}
-              className="hover:shadow-xl transition-all duration-300 flex flex-col h-[320px] hover:border-blue-300"
+              className="hover:shadow-lg transition-all duration-300 flex flex-col h-auto min-h-[300px] hover:border-primary/50 gap-0 py-0 group overflow-hidden"
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between mb-1">
+              <CardHeader className="pb-2 pt-4">
+                <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <CardTitle className="text-xl mb-1 flex items-center gap-2">
+                    <CardTitle className="text-lg mb-2 line-clamp-1 group-hover:text-primary transition-colors">
                       {contest.title}
                     </CardTitle>
-                    <Badge className={`${color} mb-2`}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    <Badge className={`${color} text-xs px-2.5 py-0.5 font-medium`}>
+                      {status === 'running' && 'Running'}
+                      {status === 'upcoming' && 'Upcoming'}
+                      {status === 'ended' && 'Ended'}
                     </Badge>
                   </div>
                 </div>
-                <CardDescription className="text-sm h-[40px] overflow-y-auto mb-2 pr-1 custom-scrollbar">
-                  {contest.description}
-                </CardDescription>
+                <div className="mt-3 h-[55px] overflow-y-auto custom-scrollbar pr-1 mask-bottom">
+                  <CardDescription className="text-sm leading-relaxed pb-1">
+                    {contest.description || (
+                      <span className="text-muted-foreground italic">暂无描述</span>
+                    )}
+                  </CardDescription>
+                </div>
               </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col pt-0 space-y-3">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium">开始时间: {formatDate(contest.startTime)}</div>
-                      <div className="text-gray-600">结束时间: {formatDate(contest.endTime)}</div>
+              <CardContent className="flex-1 pt-0 pb-2">
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                    <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="space-y-1 flex-1 overflow-hidden">
+                      <div className="font-medium text-foreground text-xs+ truncate">
+                        开始: {formatDate(contest.startTime)}
+                      </div>
+                      <div className="text-muted-foreground text-xs+ truncate">
+                        结束: {formatDate(contest.endTime)}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <Trophy className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span>类型: {getContestTypeName(contest.type)}</span>
+                  <div className="flex items-center gap-2 px-1">
+                    <Trophy className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-foreground font-medium text-xs+">
+                      类型: {getContestTypeName(contest.type)}
+                    </span>
                   </div>
                 </div>
+              </CardContent>
 
-                <div className="pt-3 border-t mt-auto">
+              <CardFooter className="pt-0 pb-4 mt-auto">
+                <div className="w-full">
+                  <Separator className="mb-3" />
                   <Button
                     onClick={() => handleEnterContest(contest.id)}
-                    className="w-full h-10 text-base font-medium"
+                    className="w-full h-9 font-medium transition-all duration-200"
                     size="default"
                     disabled={status !== 'running'}
+                    variant={status === 'running' ? 'default' : 'secondary'}
                   >
                     {status === 'running' ? (
-                      <UserPlus className="w-5 h-5 mr-2" />
+                      <UserPlus className="w-4 h-4 mr-1.5" />
                     ) : status === 'upcoming' ? (
-                      <Clock className="w-5 h-5 mr-2" />
+                      <Clock className="w-4 h-4 mr-1.5" />
                     ) : (
-                      <TimerOff className="w-5 h-5 mr-2" />
+                      <TimerOff className="w-4 h-4 mr-1.5" />
                     )}
                     {status === 'running'
                       ? '加入比赛'
@@ -175,7 +199,7 @@ export default function ContestPage() {
                         : '已结束'}
                   </Button>
                 </div>
-              </CardContent>
+              </CardFooter>
             </Card>
           );
         })}

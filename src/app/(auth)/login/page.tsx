@@ -132,6 +132,7 @@ export default function LoginPage() {
                     onChange={e => setPassword(e.target.value)}
                     className="w-full px-3 py-2 pr-10 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="请输入密码"
+                    autoComplete="current-password"
                     required
                     disabled={isLogging}
                   />

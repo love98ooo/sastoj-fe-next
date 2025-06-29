@@ -17,11 +17,11 @@ export function SubmissionsPanel({ submissions, onSubmissionClick }: Submissions
           submissions.map(submission => (
             <div
               key={submission.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted cursor-pointer transition-all hover:shadow-sm"
+              className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-card cursor-pointer transition-all hover:shadow-sm"
               onClick={() => onSubmissionClick(submission)}
             >
               <div className="flex items-center gap-4">
-                <span className="text-sm font-mono text-gray-600 dark:text-gray-400 font-medium">
+                <span className="text-sm font-mono text-muted-foreground font-medium">
                   #{submission.id}
                 </span>
                 <Badge variant="outline" className="text-xs px-2 py-1">
@@ -29,13 +29,13 @@ export function SubmissionsPanel({ submissions, onSubmissionClick }: Submissions
                 </Badge>
                 <SubmissionStatusIndicator status={getSubmissionStatus(submission)} />
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+              <div className="text-xs text-muted-foreground font-mono">
                 {formatDate(submission.createdAt)}
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-muted-foreground">
             <p>暂无提交记录</p>
           </div>
         )}
