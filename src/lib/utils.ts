@@ -18,7 +18,7 @@ export function formatDate(date: string | Date | number, formatString = 'yyyy-MM
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     return format(dateObj, formatString);
-  } catch (error) {
+  } catch {
     return String(date);
   }
 }

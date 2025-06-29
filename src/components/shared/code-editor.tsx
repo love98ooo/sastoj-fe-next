@@ -332,9 +332,9 @@ const tokyoNightLightTheme = {
     { token: 'attribute.value', foreground: '587539' },
   ],
   colors: {
-    'editor.background': '#d5d6db',
+    'editor.background': '#edf0f3',
     'editor.foreground': '#4c505e',
-    'editor.lineHighlightBackground': '#e1e2e7',
+    'editor.lineHighlightBackground': '#f5f5fa',
     'editor.selectionBackground': '#b8c4e9',
     'editor.selectionHighlightBackground': '#b8c4e9',
     'editorCursor.foreground': '#4c505e',
