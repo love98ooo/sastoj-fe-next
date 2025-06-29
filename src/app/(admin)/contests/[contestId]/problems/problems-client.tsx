@@ -12,7 +12,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { problemApi } from '@/lib/api';
@@ -190,63 +189,55 @@ export function ProblemsInContestClient() {
       </div>
 
       {/* 题目列表 */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>标题</TableHead>
-                <TableHead>类型</TableHead>
-                <TableHead>分值</TableHead>
-                <TableHead>可见性</TableHead>
-                <TableHead>操作</TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>标题</TableHead>
+            <TableHead>类型</TableHead>
+            <TableHead>分值</TableHead>
+            <TableHead>可见性</TableHead>
+            <TableHead>操作</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-8">
+                加载中...
+              </TableCell>
+            </TableRow>
+          ) : problems.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-8">
+                暂无数据
+              </TableCell>
+            </TableRow>
+          ) : (
+            problems.map(problem => (
+              <TableRow key={problem.id}>
+                <TableCell className="font-mono">{problem.id}</TableCell>
+                <TableCell className="font-medium">{problem.title}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">{getProblemTypeName(problem.typeId)}</Badge>
+                </TableCell>
+                <TableCell>{problem.point}</TableCell>
+                <TableCell>{getVisibilityDisplay(problem.visibility)}</TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditProblem(problem)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => confirmDelete(problem)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    加载中...
-                  </TableCell>
-                </TableRow>
-              ) : problems.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    暂无数据
-                  </TableCell>
-                </TableRow>
-              ) : (
-                problems.map(problem => (
-                  <TableRow key={problem.id}>
-                    <TableCell className="font-mono">{problem.id}</TableCell>
-                    <TableCell className="font-medium">{problem.title}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{getProblemTypeName(problem.typeId)}</Badge>
-                    </TableCell>
-                    <TableCell>{problem.point}</TableCell>
-                    <TableCell>{getVisibilityDisplay(problem.visibility)}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditProblem(problem)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => confirmDelete(problem)}>
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))
+          )}
+        </TableBody>
+      </Table>
 
       {/* 分页 */}
       {pagination.total > pagination.size && (

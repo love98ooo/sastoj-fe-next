@@ -249,7 +249,7 @@ export function UsersClient() {
 
       {/* 用户列表 */}
       <Card>
-        <CardContent className="p-0">
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>

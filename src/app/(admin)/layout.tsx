@@ -295,9 +295,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </Sidebar>
 
       {/* 主内容区域 */}
-      <SidebarInset className="bg-background">
+      <SidebarInset className="bg-background flex flex-col h-screen overflow-hidden">
         {/* 顶部导航栏 */}
-        <header className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
+        <header className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6 shrink-0 z-10">
           <SidebarTrigger>
             <PanelLeftClose className="h-5 w-5" />
           </SidebarTrigger>
