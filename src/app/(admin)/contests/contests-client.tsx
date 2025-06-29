@@ -278,7 +278,7 @@ export function ContestsClient() {
 
       {/* 比赛列表 */}
       <Card>
-        <CardContent className="p-0">
+        <CardContent>
           {loading ? (
             <div className="p-6">
               <ContestTableSkeleton />

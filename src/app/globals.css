@@ -249,4 +249,9 @@
     mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
   }
+
+  /* 为代码块添加样式 */
+  .problem-content code.block {
+    @apply block mb-4;
+  }
 }

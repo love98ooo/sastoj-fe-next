@@ -27,11 +27,12 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
 
             if (!isInline && match) {
               return (
-                <pre className="bg-muted rounded-lg p-4 overflow-x-auto">
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                </pre>
+                <code
+                  className={cn(className, 'block bg-muted rounded-lg p-4 overflow-x-auto')}
+                  {...props}
+                >
+                  {children}
+                </code>
               );
             }
 
@@ -41,6 +42,8 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               </code>
             );
           },
+          // 自定义 pre 标签的渲染，避免嵌套
+          pre: ({ children }) => <>{children}</>,
           // Custom rendering for tables
           table: ({ children }) => (
             <div className="overflow-x-auto">

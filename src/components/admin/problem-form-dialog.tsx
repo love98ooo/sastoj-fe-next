@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MarkdownRenderer } from '@/components/shared';
 import { problemApi } from '@/lib/api';
 import { Problem } from '@/lib/schemas';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +42,20 @@ interface ProblemType {
   judge: string;
 }
 
+// 默认表单数据
+const getDefaultFormData = (contestId?: string, typeId?: string): Partial<Problem> => ({
+  title: '',
+  content: '',
+  point: 100,
+  contestId: contestId,
+  index: 1,
+  config: '',
+  typeId: typeId || '',
+  visibility: 'Private',
+  metadata: {},
+  ownerId: 1, // 默认为系统管理员
+});
+
 export function ProblemFormDialog({
   open,
   onOpenChange,
@@ -50,28 +66,19 @@ export function ProblemFormDialog({
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [problemTypes, setProblemTypes] = useState<ProblemType[]>([]);
-  const [formData, setFormData] = useState<Partial<Problem>>({
-    title: '',
-    content: '',
-    point: 100,
-    contestId: contestId,
-    index: 0,
-    config: '{}',
-    typeId: '',
-    visibility: 'Private',
-    metadata: {},
-    ownerId: 1, // 默认为系统管理员
-  });
+  const [formData, setFormData] = useState<Partial<Problem>>(getDefaultFormData(contestId));
 
   // 加载题目类型
   useEffect(() => {
     const loadProblemTypes = async () => {
+      if (!open) return;
+
       try {
         const response = await problemApi.getTypes();
         setProblemTypes(response.types || []);
 
-        // 如果没有默认选中的类型且有题目类型数据，默认选中第一个
-        if (!formData.typeId && response.types && response.types.length > 0) {
+        // 如果没有在编辑模式且有题目类型数据，默认选中第一个
+        if (!problem && response.types && response.types.length > 0) {
           setFormData(prev => ({ ...prev, typeId: response.types[0].id }));
         }
       } catch {
@@ -83,14 +90,15 @@ export function ProblemFormDialog({
       }
     };
 
-    if (open) {
-      loadProblemTypes();
-    }
-  }, [open, toast, formData.typeId]);
+    loadProblemTypes();
+  }, [open, toast, problem]);
 
-  // 当编辑对象改变时，初始化表单
+  // 初始化表单数据
   useEffect(() => {
+    if (!open) return;
+
     if (problem) {
+      // 编辑模式：使用现有题目数据
       setFormData({
         id: problem.id,
         title: problem.title,
@@ -106,21 +114,11 @@ export function ProblemFormDialog({
         visibility: problem.visibility,
       });
     } else {
-      // 重置表单，保留比赛ID
-      setFormData({
-        title: '',
-        content: '',
-        point: 100,
-        contestId: contestId,
-        index: 0,
-        config: '{}',
-        typeId: problemTypes.length > 0 ? problemTypes[0].id : '',
-        visibility: 'Private',
-        metadata: {},
-        ownerId: 1,
-      });
+      // 创建模式：使用默认值
+      const defaultTypeId = problemTypes.length > 0 ? problemTypes[0].id : '';
+      setFormData(getDefaultFormData(contestId, defaultTypeId));
     }
-  }, [problem, contestId, problemTypes]);
+  }, [open, problem, contestId, problemTypes]);
 
   // 表单字段变更
   const handleChange = (field: string, value: any) => {
@@ -171,9 +169,15 @@ export function ProblemFormDialog({
     }
   };
 
+  // 对话框关闭处理
+  const handleOpenChange = (newOpen: boolean) => {
+    // 关闭时重置表单状态会在 useEffect 中处理
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{problem ? '编辑题目' : '创建题目'}</DialogTitle>
           <DialogDescription>
@@ -183,7 +187,7 @@ export function ProblemFormDialog({
 
         <div className="grid gap-4 py-4">
           {/* 题目标题 */}
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-4">
             <Label htmlFor="title" className="text-right">
               题目标题 <span className="text-destructive">*</span>
             </Label>
@@ -191,21 +195,21 @@ export function ProblemFormDialog({
               id="title"
               value={formData.title || ''}
               onChange={e => handleChange('title', e.target.value)}
-              className="col-span-3"
+              className="col-span-4"
               placeholder="请输入题目标题"
             />
           </div>
 
           {/* 题目类型 */}
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-4">
             <Label htmlFor="type" className="text-right">
               题目类型 <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.typeId?.toString() || ''}
-              onValueChange={value => handleChange('type_id', value)}
+              onValueChange={value => handleChange('typeId', value)}
             >
-              <SelectTrigger id="type" className="col-span-3">
+              <SelectTrigger id="type" className="col-span-4 w-full">
                 <SelectValue placeholder="选择题目类型" />
               </SelectTrigger>
               <SelectContent>
@@ -219,7 +223,7 @@ export function ProblemFormDialog({
           </div>
 
           {/* 题目分值 */}
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-4">
             <Label htmlFor="point" className="text-right">
               题目分值 <span className="text-destructive">*</span>
             </Label>
@@ -228,21 +232,37 @@ export function ProblemFormDialog({
               type="number"
               value={formData.point || 100}
               onChange={e => handleChange('point', parseInt(e.target.value))}
-              className="col-span-3"
+              className="col-span-4"
               placeholder="请输入题目分值"
             />
           </div>
 
+          {/* 题目序号 */}
+          <div className="grid grid-cols-5 items-center gap-4">
+            <Label htmlFor="index" className="text-right">
+              题目序号
+            </Label>
+            <Input
+              id="index"
+              type="number"
+              value={formData.index}
+              onChange={e => handleChange('index', parseInt(e.target.value))}
+              className="col-span-4"
+              placeholder="请输入题目序号"
+            />
+          </div>
+
           {/* 可见性 */}
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-4">
             <Label htmlFor="visability" className="text-right">
               可见性 <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.visibility?.toString() || '0'}
-              onValueChange={value => handleChange('visability', parseInt(value))}
+              onValueChange={value => handleChange('visibility', parseInt(value))}
+              defaultValue="2"
             >
-              <SelectTrigger id="visability" className="col-span-3">
+              <SelectTrigger id="visability" className="col-span-4 w-full">
                 <SelectValue placeholder="选择可见性" />
               </SelectTrigger>
               <SelectContent>
@@ -254,31 +274,67 @@ export function ProblemFormDialog({
           </div>
 
           {/* 题目内容 (Markdown) */}
-          <div className="grid grid-cols-4 items-start gap-4">
+          <div className="grid grid-cols-5 items-start gap-4">
             <Label htmlFor="content" className="text-right pt-2">
               题目内容 <span className="text-destructive">*</span>
             </Label>
-            <Textarea
-              id="content"
-              value={formData.content || ''}
-              onChange={e => handleChange('content', e.target.value)}
-              className="col-span-3 min-h-[200px]"
-              placeholder="请使用Markdown格式输入题目内容"
-            />
+            <div className="col-span-4">
+              <Tabs defaultValue="edit" className="w-full">
+                <TabsList className="mb-2">
+                  <TabsTrigger value="edit">编辑</TabsTrigger>
+                  <TabsTrigger value="preview">预览</TabsTrigger>
+                </TabsList>
+                <TabsContent value="edit">
+                  <Textarea
+                    id="content"
+                    value={formData.content || ''}
+                    onChange={e => handleChange('content', e.target.value)}
+                    className="min-h-[200px]"
+                    placeholder={`# 题目
+
+## 题目描述
+
+## 样例
+
+## 样例输入
+
+## 样例输出
+`}
+                  />
+                </TabsContent>
+                <TabsContent value="preview" className="border rounded-md p-4 min-h-[200px]">
+                  <MarkdownRenderer content={formData.content || ''} />
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
 
-          {/* 配置 (JSON) */}
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="config" className="text-right pt-2">
-              题目配置 <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="config"
-              value={formData.config || '{}'}
-              onChange={e => handleChange('config', e.target.value)}
-              className="col-span-3 font-mono text-sm"
-              placeholder='请输入JSON格式的题目配置，例如：{"time_limit": 1000, "memory_limit": 256}'
-            />
+          {/* 配置 (TOML) */}
+          <div className="grid grid-cols-5 items-start gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="config" className="text-right pt-2">
+                题目配置
+              </Label>
+              <div className="text-xs text-muted-foreground mt-1">
+                <a
+                  href="https://ojdocs.sast.fun/user-guide/admin-console/judge/config.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  查看配置文档
+                </a>
+              </div>
+            </div>
+            <div className="col-span-4">
+              <Textarea
+                id="config"
+                value={formData.config || ''}
+                onChange={e => handleChange('config', e.target.value)}
+                className="font-mono text-sm min-h-[150px]"
+                placeholder={'请输入题目配置'}
+              />
+            </div>
           </div>
         </div>
 
