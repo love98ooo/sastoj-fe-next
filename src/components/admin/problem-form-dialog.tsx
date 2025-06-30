@@ -208,6 +208,7 @@ export function ProblemFormDialog({
             <Select
               value={formData.typeId?.toString() || ''}
               onValueChange={value => handleChange('typeId', value)}
+              disabled={!!problem} // 在编辑模式下禁用选择器
             >
               <SelectTrigger id="type" className="col-span-4 w-full">
                 <SelectValue placeholder="选择题目类型" />
@@ -220,6 +221,11 @@ export function ProblemFormDialog({
                 ))}
               </SelectContent>
             </Select>
+            {problem && (
+              <div className="col-span-4 col-start-2 text-xs text-muted-foreground mt-1">
+                题目类型创建后不可修改
+              </div>
+            )}
           </div>
 
           {/* 题目分值 */}

@@ -257,7 +257,6 @@ export function UsersClient() {
                 <TableHead>用户名</TableHead>
                 <TableHead>用户组</TableHead>
                 <TableHead>状态</TableHead>
-                <TableHead>创建时间</TableHead>
                 <TableHead>操作</TableHead>
               </TableRow>
             </TableHeader>
@@ -289,9 +288,6 @@ export function UsersClient() {
                       </div>
                     </TableCell>
                     <TableCell>{getStateDisplay(user.state)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(user.createdAt || '').toLocaleString()}
-                    </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
                         <Edit className="h-4 w-4" />

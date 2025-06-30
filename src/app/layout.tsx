@@ -21,17 +21,17 @@ export const metadata: Metadata = {
   icons: [
     {
       rel: 'icon',
-      url: '/sastoj.svg',
+      url: '/sastoj.min.svg',
       media: '(prefers-color-scheme: light)',
     },
     {
       rel: 'icon',
-      url: '/sastoj-dark.svg',
+      url: '/sastoj-dark.min.svg',
       media: '(prefers-color-scheme: dark)',
     },
     {
       rel: 'apple-touch-icon',
-      url: '/sastoj.svg',
+      url: '/sastoj.min.svg',
     },
   ],
 };

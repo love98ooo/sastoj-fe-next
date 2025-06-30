@@ -28,7 +28,7 @@ export function Logo({ width = 48, height = 48, alt = 'SASTOJ Logo', className }
 
   // Determine which logo to use based on the current theme
   const currentTheme = theme === 'system' ? resolvedTheme : theme;
-  const logoSrc = currentTheme === 'dark' ? '/sastoj-dark.svg' : '/sastoj.svg';
+  const logoSrc = currentTheme === 'dark' ? '/sastoj-dark.min.svg' : '/sastoj.min.svg';
 
   return (
     <Image

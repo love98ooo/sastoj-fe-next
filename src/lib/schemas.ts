@@ -35,8 +35,6 @@ export const UserSchema = z.object({
   id: z.string(),
   username: z.string(),
   groupIds: z.array(z.number()),
-  createdAt: z.string(),
-  updatedAt: z.string(),
   state: z.number(),
 });
 
