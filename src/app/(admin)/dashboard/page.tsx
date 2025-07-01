@@ -1,6 +1,11 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText,
   Users,
@@ -9,9 +14,60 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  RefreshCw,
+  Server,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+
+interface QueueStats {
+  queueName: string;
+  messagesReady: string;
+  messagesUnacked: string;
+  consumers: string;
+  memory: string;
+  messageRateIn: string;
+  messageRateOut: string;
+  messageRateAck: string;
+}
 
 export default function DashboardPage() {
+  const [queueStats, setQueueStats] = useState<QueueStats[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchQueueStats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      interface QueueStatsResponse {
+        stats: QueueStats[];
+      }
+
+      const response = await api.get<QueueStatsResponse>('/mq/queue-stats');
+      setQueueStats(response.stats || []);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Failed to fetch queue stats:', err);
+      setError('获取队列状态失败，请稍后再试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // 初始加载
+    fetchQueueStats();
+
+    // 设置定时轮询 (每3秒刷新一次)
+    const intervalId = setInterval(fetchQueueStats, 3000);
+
+    // 清理函数
+    return () => clearInterval(intervalId);
+  }, []);
+
   // 模拟数据
   const stats = [
     {
@@ -94,6 +150,22 @@ export default function DashboardPage() {
     { status: '其他', count: 585, percentage: 5, color: 'bg-gray-500' },
   ];
 
+  // 判断队列状态
+  const getQueueStatus = (stats: QueueStats[]) => {
+    if (!stats || stats.length === 0) return 'unknown';
+
+    // 检查是否有队列消息堆积
+    const hasBacklog = stats.some(q => parseInt(q.messagesReady) > 100);
+    // 检查是否有队列没有消费者
+    const hasNoConsumers = stats.some(q => q.consumers === '0');
+
+    if (hasBacklog) return 'busy';
+    if (hasNoConsumers) return 'warning';
+    return 'normal';
+  };
+
+  const queueStatus = getQueueStatus(queueStats);
+
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
@@ -130,46 +202,122 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-7">
         {/* 主要内容区域 */}
         <div className="lg:col-span-4 space-y-6">
-          {/* 系统概览 */}
+          {/* 判题队列监控 */}
           <Card>
-            <CardHeader>
-              <CardTitle>系统概览</CardTitle>
-              <CardDescription>查看系统整体运行状况和关键指标</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>判题队列监控</CardTitle>
+                <CardDescription>实时监控判题队列状态和负载</CardDescription>
+              </div>
+              <button
+                onClick={() => fetchQueueStats()}
+                className="p-1 rounded-full hover:bg-accent"
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </button>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>服务器负载</span>
-                    <span>42%</span>
-                  </div>
-                  <Progress value={42} className="h-2" />
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>错误</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {queueStatus === 'normal' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                  {queueStatus === 'busy' && <AlertCircle className="h-4 w-4 text-yellow-500" />}
+                  {queueStatus === 'warning' && <AlertCircle className="h-4 w-4 text-orange-500" />}
+                  {queueStatus === 'unknown' && <Server className="h-4 w-4 text-gray-500" />}
+
+                  <span className="text-sm font-medium">
+                    {queueStatus === 'normal' && '判题队列正常'}
+                    {queueStatus === 'busy' && '判题队列繁忙'}
+                    {queueStatus === 'warning' && '判题队列警告'}
+                    {queueStatus === 'unknown' && '判题队列状态未知'}
+                  </span>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>内存使用</span>
-                    <span>67%</span>
-                  </div>
-                  <Progress value={67} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>磁盘空间</span>
-                    <span>23%</span>
-                  </div>
-                  <Progress value={23} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>网络带宽</span>
-                    <span>15%</span>
-                  </div>
-                  <Progress value={15} className="h-2" />
-                </div>
+
+                {lastUpdated && (
+                  <span className="text-xs text-muted-foreground">
+                    更新于: {lastUpdated.toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                {loading && !queueStats.length ? (
+                  Array(3)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-[250px]" />
+                        <Skeleton className="h-4 w-[200px]" />
+                      </div>
+                    ))
+                ) : queueStats.length === 0 && !loading ? (
+                  <div className="text-center py-4 text-muted-foreground">没有找到队列数据</div>
+                ) : (
+                  queueStats.map((queue, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Server className="h-4 w-4" />
+                          <span className="font-medium">{queue.queueName}</span>
+                        </div>
+                        <Badge
+                          variant={parseInt(queue.messagesReady) > 100 ? 'destructive' : 'outline'}
+                        >
+                          {queue.consumers} 消费者
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">待处理消息</span>
+                            <span>{queue.messagesReady}</span>
+                          </div>
+                          <Progress
+                            value={Math.min(parseInt(queue.messagesReady) / 10, 100)}
+                            className="h-1"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">未确认消息</span>
+                            <span>{queue.messagesUnacked}</span>
+                          </div>
+                          <Progress
+                            value={Math.min(parseInt(queue.messagesUnacked) / 10, 100)}
+                            className="h-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                        <div>入队速率: {parseFloat(queue.messageRateIn).toFixed(2)}/秒</div>
+                        <div>出队速率: {parseFloat(queue.messageRateOut).toFixed(2)}/秒</div>
+                        <div>确认速率: {parseFloat(queue.messageRateAck).toFixed(2)}/秒</div>
+                      </div>
+
+                      {index < queueStats.length - 1 && <Separator className="my-2" />}
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
+        </div>
 
+        {/* 侧边栏 - 最近活动 */}
+        <div className="lg:col-span-3">
           {/* 提交统计 */}
           <Card>
             <CardHeader>
@@ -190,92 +338,6 @@ export default function DashboardPage() {
                       </div>
                       <Progress value={item.percentage} className="h-2" />
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 性能监控 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>性能监控</CardTitle>
-              <CardDescription>系统性能指标和健康状态</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">数据库连接正常</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Redis 缓存正常</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm">判题队列繁忙</span>
-                </div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">最近 24 小时</h4>
-                <div className="grid gap-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>平均响应时间</span>
-                    <span>142ms</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>错误率</span>
-                    <span>0.02%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>在线用户</span>
-                    <span>234</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 侧边栏 - 最近活动 */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Clock className="h-4 w-4" />
-                <span>最近活动</span>
-              </CardTitle>
-              <CardDescription>系统最新动态和操作记录</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <div key={activity.id}>
-                    <div className="flex items-start space-x-3">
-                      <div
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                          activity.color === 'blue'
-                            ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                            : activity.color === 'green'
-                              ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400'
-                              : activity.color === 'yellow'
-                                ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400'
-                                : 'bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'
-                        }`}
-                      >
-                        <activity.icon className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">{activity.title}</p>
-                          <span className="text-xs text-muted-foreground">{activity.time}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{activity.description}</p>
-                      </div>
-                    </div>
-                    {index < recentActivities.length - 1 && <Separator className="mt-4" />}
                   </div>
                 ))}
               </div>
